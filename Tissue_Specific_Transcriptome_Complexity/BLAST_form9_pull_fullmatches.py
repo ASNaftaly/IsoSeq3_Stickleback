@@ -43,7 +43,7 @@ def pull_BLAST_results():
 
 #next, will sort through BLAST results and pull out those that are close to ind_query sequence length
 #keeps all matches that match at least 1/2 of the individual query sequence
-#returns dictionary with key = isoform and value == [blast output for each line]
+#returns dictionary with key = isoform and value == [blast output for each line] + "*" for full match and "-" for partial matches
 def sort_BLAST_bestmatch():
     blast_dict = pull_BLAST_results()
     individual_isoforms = pull_ind_isoform()
@@ -64,9 +64,16 @@ def sort_BLAST_bestmatch():
             match_index = match[0]
             match_length = match[1]
             if int(match_length) == int(single_individual_isoform):
-                full_matches.append(single_blast_results[match_index])
+                dict_value = single_blast_results[match_index]
+                dict_value += "*"
+                print(dict_value)
+                full_matches.append(dict_value)
+            #this pulls matches that match at least have the length of the query sequence
             elif int(match_length) > int(int(single_individual_isoform)/2):
-                partial_matches.append(single_blast_results[match_index])
+                dict_value = single_blast_results[match_index]
+                dict_value += "-"
+                print(dict_value)
+                partial_matches.append(dict_value)
         for fm in full_matches:
             if isoform in best_match_dict:
                 best_match_dict[isoform].append(fm)
