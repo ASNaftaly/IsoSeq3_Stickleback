@@ -13,3 +13,9 @@ Pull_seqs_exons_dups_removed.py:
 	input files = output file from Remove_duplicates_BLAST.py, nucleotide sequences from fasta file, protein sequences from faa file, exon positions from gtf
 	output files = duplicates removed fasta file, protein faa file, exon gtf file
 
+#after BLASTing individual tissues to combined sexes database without duplicates
+BLAST_form9_pull_fullmatches.py
+	function: filters BLAST results based on full matches (isoform exactly matches full length of query (individual tissue) sequences 
+	input files = individual tissue classification file from SQANTI, BLAST results from individual tissue to combined sexes database
+	output file = blast query matches with full matches marked by "*" and partial matches marked by "-"
+
