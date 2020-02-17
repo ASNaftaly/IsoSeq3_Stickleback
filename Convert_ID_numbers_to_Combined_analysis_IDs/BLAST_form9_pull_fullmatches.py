@@ -66,7 +66,6 @@ def sort_BLAST_bestmatch():
             if int(match_length) == int(single_individual_isoform):
                 dict_value = single_blast_results[match_index]
                 dict_value += "*"
-                print(dict_value)
                 full_matches.append(dict_value)
             #this pulls matches that match at least have the length of the query sequence
             elif int(match_length) > int(int(single_individual_isoform)/2):
