@@ -72,7 +72,6 @@ def sort_BLAST_bestmatch():
             elif int(match_length) > int(int(single_individual_isoform)/2):
                 dict_value = single_blast_results[match_index]
                 dict_value += "-"
-                print(dict_value)
                 partial_matches.append(dict_value)
         for fm in full_matches:
             if isoform in best_match_dict:
