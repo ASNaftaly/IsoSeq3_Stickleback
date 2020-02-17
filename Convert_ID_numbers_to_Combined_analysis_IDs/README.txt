@@ -19,3 +19,9 @@ BLAST_form9_pull_fullmatches.py
 	input files = individual tissue classification file from SQANTI, BLAST results from individual tissue to combined sexes database
 	output file = blast query matches with full matches marked by "*" and partial matches marked by "-"
 
+#after BLAST_form9_pull_fullmatches.py; needed to further sort BLAST matches so single tissue isoform would only match with one combined tissues isoform 
+Sort_best_matches_BLAST.py
+	function: excludes BLAST matches except the longest alignment of query to subject, sorts through single tissue isoforms 		that match multiple combined sexes isoforms and keeps the match with the longest alignment
+	input files, etc. = <output file from BLAST_form9_pull_fullmatches.py> <individual tissue classification file from SQANTI> <combined tissues classification file from SQANTI> <output sample name, i.e. female.liver.isoform>
+	output files = 2 column tab delimited file with column 1 being the isoform ID from the single tissue analysis and column 2 being the isoform ID from the combined tissues analysis
+	note: also included the option to expand this script to examine the BLAST results that were excluded from the final file
