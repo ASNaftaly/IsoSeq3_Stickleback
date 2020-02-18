@@ -8,7 +8,7 @@ Remove_duplicates_BLAST.py:
 	input files = BLAST results in output format 9, isoseq classification file from SQANTI
 	output file = new classification file without the duplicates (combined.sexes.filtered_classification_dupsremoved.txt)
 
-Pull_seqs_exons_dups_removed.py:
+Pull_seqs_exons_dups_filtered.py:
 	function: removes duplicates from the fasta file, faa file, and the gtf file produced from SQANTI (isoseq)
 	input files = output file from Remove_duplicates_BLAST.py, nucleotide sequences from fasta file, protein sequences from faa file, exon positions from gtf
 	output files = duplicates removed fasta file, protein faa file, exon gtf file (*.filtered_corrected.nodups.fa,fasta, gtf)
@@ -34,4 +34,5 @@ Sort_best_matches_BLAST.py
 Convert_Classification_File.py
 	function: adds combined sexes isoform to column 1 for isoforms in single tissue that matched one combined sexes isoform; also creates a file with all of the individual tissue isoforms that were excluded using the previous scripts
 	input files = output from Sort_best_matches_BLAST.py, individual tissue classification file from SQANTI
-	output files = new classification file with combined sexes isoforms added, classification file with excluded single tissue isoforms
+	output files = new classification file with combined sexes isoforms added, classification file with excluded single tissue isoforms (*filtered.converted.isoforms.classification.txt or *.filtered.excluded.isoforms.classification.txt)
+	*can then use Pull_seqs_exons_filtered.py to sort through individual tissue fasta, faa, and gtf files
