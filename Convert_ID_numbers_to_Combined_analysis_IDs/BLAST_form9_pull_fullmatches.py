@@ -18,6 +18,8 @@ def pull_ind_isoform():
             isoform_id = new_line[0]
             length = new_line[3]
             ind_isoform_dict.update({isoform_id:length})
+    print("Number of Isoforms in Single Tissue")
+    print(len(ind_isoform_dict))
     return ind_isoform_dict
 
 #need to pull BLAST information
@@ -39,6 +41,8 @@ def pull_BLAST_results():
                     BLAST_dict[query_id].append(new_line)
                 elif query_id not in BLAST_dict:
                     BLAST_dict.update({query_id:[new_line]})
+    print("Total BLAST matches")
+    print(len(BLAST_dict))
     return BLAST_dict
 
 #next, will sort through BLAST results and pull out those that are close to ind_query sequence length
@@ -82,6 +86,8 @@ def sort_BLAST_bestmatch():
                 best_match_dict[isoform].append(pm)
             elif isoform not in best_match_dict:
                 best_match_dict.update({isoform:[pm]})
+    print("Number of Isoforms that matched greater than 50% of Subject")
+    print(len(best_match_dict))
     return best_match_dict
 
 #write best matches to an output file
