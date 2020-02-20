@@ -77,57 +77,12 @@ def sort_matches():
     kept_count = 0
     removed_count = 0
     for isoform in best_matches:
-        total += 1
-        single_isoform = best_matches[isoform]
-        #if there is only 1 isoform match
-        if len(single_isoform) == 1:
-            single = single_isoform[0]
-            single_query_isoform = single[0]
-            single_subject_isoform = single[1]
-            q_length = int(single[3])
-            q_start = int(single[6])
-            q_end = int(single[7])
-            s_start = int(single[8])
-            s_end = int(single[9])
-            marker = single[len(single)-1]
-            comb_length = combined_length[single_subject_isoform]
-            comb_length_60per = int(round(0.60 * comb_length, 0))
-            ind_chr = individual_isoforms[single_query_isoform]
-            comb_chr = combined_isoforms[single_subject_isoform]
+        if isoform in individual_isoforms:
             #total += 1
-            #if both individual isoform and combined analysis isoform have the same chromosome and strand
-            if ind_chr == comb_chr:
-                #if the alignment is an exact match
-                if q_start == s_start and q_end == s_end:
-                    if isoform in kept_matches:
-                        kept_matches[isoform].append(single)
-                    elif isoform not in kept_matches:
-                        kept_matches.update({isoform:[single]})
-                    #kept_count += 1
-                #if alignment covers more than 60% of the subject isoform
-                elif q_length >= comb_length_60per:
-                    if isoform in kept_matches:
-                        kept_matches[isoform].append(single)
-                    elif isoform not in kept_matches:
-                        kept_matches.update({isoform:[single]})
-                    #kept_count += 1
-                #if the alignment is less than 60% of the subject isoform, these will be removed for now
-                else:
-                    if isoform in excluded_matches:
-                        excluded_matches[isoform].append(single)
-                    elif isoform not in excluded_matches:
-                        excluded_matches.update({isoform:[single]})
-                    #removed_count += 1
-            #if the chromosome or strand isn't the same, then the matches are not correct
-            else:
-                if isoform in excluded_matches:
-                    excluded_matches[isoform].append(single)
-                elif isoform not in excluded_matches:
-                    excluded_matches.update({isoform:[single]})
-                #removed_count += 1
-        #if there is more than 1 match for a single isoform (matches can be full matches or where the length of alignment is greater than half of the length of the query sequence)
-        elif len(single_isoform) > 1:
-            for single in single_isoform:
+            single_isoform = best_matches[isoform]
+            #if there is only 1 isoform match
+            if len(single_isoform) == 1:
+                single = single_isoform[0]
                 single_query_isoform = single[0]
                 single_subject_isoform = single[1]
                 q_length = int(single[3])
@@ -163,15 +118,61 @@ def sort_matches():
                             excluded_matches[isoform].append(single)
                         elif isoform not in excluded_matches:
                             excluded_matches.update({isoform:[single]})
-                        #print((q_length/comb_length)*100)
                         #removed_count += 1
-                #if the chromosome isn't the same, then the matches are not correct
+                #if the chromosome or strand isn't the same, then the matches are not correct
                 else:
                     if isoform in excluded_matches:
                         excluded_matches[isoform].append(single)
                     elif isoform not in excluded_matches:
                         excluded_matches.update({isoform:[single]})
                     #removed_count += 1
+            #if there is more than 1 match for a single isoform (matches can be full matches or where the length of alignment is greater than half of the length of the query sequence)
+            elif len(single_isoform) > 1:
+                for single in single_isoform:
+                    single_query_isoform = single[0]
+                    single_subject_isoform = single[1]
+                    q_length = int(single[3])
+                    q_start = int(single[6])
+                    q_end = int(single[7])
+                    s_start = int(single[8])
+                    s_end = int(single[9])
+                    marker = single[len(single)-1]
+                    comb_length = combined_length[single_subject_isoform]
+                    comb_length_60per = int(round(0.60 * comb_length, 0))
+                    ind_chr = individual_isoforms[single_query_isoform]
+                    comb_chr = combined_isoforms[single_subject_isoform]
+                    #total += 1
+                    #if both individual isoform and combined analysis isoform have the same chromosome and strand
+                    if ind_chr == comb_chr:
+                        #if the alignment is an exact match
+                        if q_start == s_start and q_end == s_end:
+                            if isoform in kept_matches:
+                                kept_matches[isoform].append(single)
+                            elif isoform not in kept_matches:
+                                kept_matches.update({isoform:[single]})
+                            #kept_count += 1
+                        #if alignment covers more than 60% of the subject isoform
+                        elif q_length >= comb_length_60per:
+                            if isoform in kept_matches:
+                                kept_matches[isoform].append(single)
+                            elif isoform not in kept_matches:
+                                kept_matches.update({isoform:[single]})
+                            #kept_count += 1
+                        #if the alignment is less than 60% of the subject isoform, these will be removed for now
+                        else:
+                            if isoform in excluded_matches:
+                                excluded_matches[isoform].append(single)
+                            elif isoform not in excluded_matches:
+                                excluded_matches.update({isoform:[single]})
+                            #print((q_length/comb_length)*100)
+                            #removed_count += 1
+                    #if the chromosome isn't the same, then the matches are not correct
+                    else:
+                        if isoform in excluded_matches:
+                            excluded_matches[isoform].append(single)
+                        elif isoform not in excluded_matches:
+                            excluded_matches.update({isoform:[single]})
+                        #removed_count += 1
     print("Number of Isoforms that met filter criteria 1")
     print(len(kept_matches))
     print("Number of Isoforms that were removed from filter criteria 1")
@@ -202,8 +203,6 @@ def sort_kept_matches():
             max_alignment_length = max(alignment_lengths)
             alignment_index = alignment_lengths.index(max_alignment_length)
             single_matches.update({isoform:single_isoform[alignment_index]})
-    print("Number of Isoforms that met filter criteria 2")
-    print(len(single_matches))
     return single_matches
 
 
