@@ -14,10 +14,13 @@ def pull_ind_isoform():
     ind_isoform_dict = {}
     with open(ind_isoform_file, 'r') as isoforms:
         for line in isoforms:
-            new_line = line.split()
-            isoform_id = new_line[0]
-            length = new_line[3]
-            ind_isoform_dict.update({isoform_id:length})
+            if line.startswith("isoform"):
+                continue
+            else:
+                new_line = line.split()
+                isoform_id = new_line[0]
+                length = new_line[3]
+                ind_isoform_dict.update({isoform_id:length})
     print("Number of Isoforms in Single Tissue")
     print(len(ind_isoform_dict))
     return ind_isoform_dict
@@ -53,39 +56,40 @@ def sort_BLAST_bestmatch():
     individual_isoforms = pull_ind_isoform()
     best_match_dict = {}
     for isoform in blast_dict:
-        length_list = []
-        full_matches = []
-        partial_matches = []
-        single_blast_results = blast_dict[isoform]
-        single_individual_isoform = individual_isoforms[isoform]
-        for index, single in enumerate(single_blast_results):
-            length_of_query_match = int(single[3])
-            value = [index, length_of_query_match]
-            length_list.append(value)
-        #sort length list based on position 1 in list (length of query match)
-        sorted_length_list = sorted(length_list, key=lambda x: max(x[1:]), reverse=True)
-        for match in sorted_length_list:
-            match_index = match[0]
-            match_length = match[1]
-            if int(match_length) == int(single_individual_isoform):
-                dict_value = single_blast_results[match_index]
-                dict_value += "*"
-                full_matches.append(dict_value)
-            #this pulls matches that match at least have the length of the query sequence
-            elif int(match_length) > int(int(single_individual_isoform)/2):
-                dict_value = single_blast_results[match_index]
-                dict_value += "-"
-                partial_matches.append(dict_value)
-        for fm in full_matches:
-            if isoform in best_match_dict:
-                best_match_dict[isoform].append(fm)
-            elif isoform not in best_match_dict:
-                best_match_dict.update({isoform:[fm]})
-        for pm in partial_matches:
-            if isoform in best_match_dict:
-                best_match_dict[isoform].append(pm)
-            elif isoform not in best_match_dict:
-                best_match_dict.update({isoform:[pm]})
+        if isoform in individual_isoforms:
+            length_list = []
+            full_matches = []
+            partial_matches = []
+            single_blast_results = blast_dict[isoform]
+            single_individual_isoform = individual_isoforms[isoform]
+            for index, single in enumerate(single_blast_results):
+                length_of_query_match = int(single[3])
+                value = [index, length_of_query_match]
+                length_list.append(value)
+            #sort length list based on position 1 in list (length of query match)
+            sorted_length_list = sorted(length_list, key=lambda x: max(x[1:]), reverse=True)
+            for match in sorted_length_list:
+                match_index = match[0]
+                match_length = match[1]
+                if int(match_length) == int(single_individual_isoform):
+                    dict_value = single_blast_results[match_index]
+                    dict_value += "*"
+                    full_matches.append(dict_value)
+                #this pulls matches that match at least have the length of the query sequence
+                elif int(match_length) > int(int(single_individual_isoform)/2):
+                    dict_value = single_blast_results[match_index]
+                    dict_value += "-"
+                    partial_matches.append(dict_value)
+            for fm in full_matches:
+                if isoform in best_match_dict:
+                    best_match_dict[isoform].append(fm)
+                elif isoform not in best_match_dict:
+                    best_match_dict.update({isoform:[fm]})
+            for pm in partial_matches:
+                if isoform in best_match_dict:
+                    best_match_dict[isoform].append(pm)
+                elif isoform not in best_match_dict:
+                    best_match_dict.update({isoform:[pm]})
     print("Number of Isoforms that matched greater than 50% of Subject")
     print(len(best_match_dict))
     return best_match_dict
