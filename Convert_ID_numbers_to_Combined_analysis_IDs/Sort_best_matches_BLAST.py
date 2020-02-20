@@ -172,6 +172,10 @@ def sort_matches():
                     elif isoform not in excluded_matches:
                         excluded_matches.update({isoform:[single]})
                     #removed_count += 1
+    print("Number of Isoforms that met filter criteria 1")
+    print(len(kept_matches))
+    print("Number of Isoforms that were removed from filter criteria 1")
+    print(len(excluded matches))
     return kept_matches, excluded_matches
 
 
@@ -198,7 +202,7 @@ def sort_kept_matches():
             max_alignment_length = max(alignment_lengths)
             alignment_index = alignment_lengths.index(max_alignment_length)
             single_matches.update({isoform:single_isoform[alignment_index]})
-    print("Total number of single matches for single tissue isoforms")
+    print("Number of Isoforms that met filter criteria 2")
     print(len(single_matches))
     return single_matches
 
@@ -230,7 +234,7 @@ def collapse_matches():
             max_length = max(alignment_lengths)
             max_index = alignment_lengths.index(max_length)
             final_dict.update({key:single_key[max_index]})
-    print("Total number of isoforms that only match one single tissue isoform and one combined tissues isoform")
+    print("Number of Isoforms that matched only one combined sexes isoform")
     print(len(final_dict))
     return final_dict
 
