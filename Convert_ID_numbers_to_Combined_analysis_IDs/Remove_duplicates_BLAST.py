@@ -21,6 +21,7 @@ def read_blast():
                     blast_dict[isoform_id].append(new_line)
                 elif isoform_id not in blast_dict:
                     blast_dict.update({isoform_id:[new_line]})
+    print("Read BLAST Output File")
     return blast_dict
 
 #need the length of combined sexes isoforms
@@ -37,6 +38,7 @@ def pull_combined_isoform():
                 isoform_id = new_line[0]
                 length = new_line[3]
                 combined_isoform_dict.update({isoform_id:length})
+    print("Read combined sexes classification file and created isoform length dictionary")
     return combined_isoform_dict
 
 #create dictionary for classification file so duplicates can be removed
@@ -49,6 +51,7 @@ def create_class_dict():
             new_line = line.split()
             key_value = new_line[0]
             class_dict.update({key_value:line})
+    print("Created combined sexes classification dictionary")
     return class_dict
 
 
@@ -99,6 +102,7 @@ def sort_matches():
     for i in isoform_lengths:
         if i not in full_matches and i not in partial_matches and i not in set_duplicates and i != "isoform":
             missing_isoforms.append(i)
+    print("Sorted dictionary by match type")
     return full_matches, partial_matches, set_duplicates, missing_isoforms
 
 #creating classification file with duplicates removed
@@ -108,6 +112,7 @@ def sort_class_dict():
     for iso in set_dups:
         if iso in classification_dict:
             del classification_dict[iso]
+    print("Sorted classification dictionary based on matches")
     return classification_dict
 
 #writing new filtered classification filter
