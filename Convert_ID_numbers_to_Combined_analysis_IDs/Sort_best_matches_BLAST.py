@@ -175,7 +175,7 @@ def sort_matches():
     print("Number of Isoforms that met filter criteria 1")
     print(len(kept_matches))
     print("Number of Isoforms that were removed from filter criteria 1")
-    print(len(excluded matches))
+    print(len(excluded_matches))
     return kept_matches, excluded_matches
 
 
