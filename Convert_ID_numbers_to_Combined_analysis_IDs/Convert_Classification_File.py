@@ -61,6 +61,8 @@ def combine():
         elif key not in isoform_comps:
             single_class_line = class_dict[key]
             excluded_dict.update({key:single_class_line})
+    print("Number of Isoforms kept after filter 1")
+    print(len(combined_dict))
     return combined_dict, excluded_dict
 
 #write combined and excluded dictionaries to files
