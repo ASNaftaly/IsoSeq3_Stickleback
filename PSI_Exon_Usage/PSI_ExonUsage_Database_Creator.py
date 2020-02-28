@@ -668,8 +668,8 @@ def combine_ensembl_isoseq():
                                     final_combined_dict.update({key:[single]})
                                     final_combined_dict[key].append(isoform)
             #if the ensembl gene is not in isoseq
-            #else:
-            #    final_combined_dict.update({key:[single_ensembl]})
+            else:
+                final_combined_dict.update({key:[single_ensembl]})
         #if ensembl gene has multiple entries
         else:
             for ens_single in single_ensembl:
@@ -1382,8 +1382,8 @@ def combine_ensembl_isoseq():
                                         #final_combined_dict.update({key:[ens_single]})
                                         final_combined_dict.update({key:[iso]})
                 #if the ensembl gene is not in isoseq
-                #else:
-                #    final_combined_dict.update({key:[single_ensembl]})
+                else:
+                    final_combined_dict.update({key:[single_ensembl]})
     for key2 in isoseq_dict:
         if key2 not in ensembl_dict:
             single_key2 = isoseq_dict[key2]
@@ -1404,8 +1404,10 @@ def reduce_combined_dict():
     final_non_duplicates = []
     for gene in combined_dict:
         single_gene = combined_dict[gene]
+        #if there is only 1 isoform for a gene, this adds the gene to the final dictionary without extra []; though some isoforms might have 2 sets of [] which will need to be removed in the next function
         if len(single_gene) == 1:
             final_dictionary.update({gene:single_gene[0]})
+        #if there is more than 1 isoform for a gene, loop through each isoform
         else:
             for value in single_gene:
                 if len(value) == 1:
@@ -1527,8 +1529,35 @@ def convert_direction_combined_dict():
     converted_dict = {}
     for key in combined_dict:
         single_key = combined_dict[key]
-        #if there is only one isoform for a gene
-        if (len(single_key) == 6 or len(single_key) == 5) and isinstance(single_key[0], list) == False:
+        #if there is one isoform per gene and the isoform is encompassed by [[]]
+        if len(single_key) == 1:
+            single = single_key[0]
+            if len(single) == 5:
+                strand = single[3]
+                exons = single[4]
+                single_key_info = single_key[0:len(single_key)-1]
+            elif len(single_key) == 6:
+                strand = single_key[4]
+                exons = single_key[5]
+                single_key_info = single_key[0:len(single_key)-1]
+            #if strand == +, the exons should increase in position
+            if strand == "+":
+                new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
+                final = single_key_info + [new_exons]
+                converted_dict.update({key:final})
+            #if strand == -, the exons should decrease in position
+            elif strand == "-":
+                final_exons = []
+                #this first sorts all exon pairs (start, end) in descending order
+                new_exons = sorted(exons, key=lambda x: x[0], reverse = True)
+                #because for - strand genes, the second position in a pair is actually the exon start, need to flip all exon pairs
+                for exon in new_exons:
+                    exon.reverse()
+                    final_exons.append(exon)
+                final = single_key_info + [final_exons]
+                converted_dict.update({key:final})
+        #if there is only one isoform for a gene that is not encompassed by [[]]
+        elif (len(single_key) == 6 or len(single_key) == 5) and isinstance(single_key[0], list) == False:
             if len(single_key) == 5:
                 strand = single_key[3]
                 exons = single_key[4]
@@ -1588,7 +1617,6 @@ def convert_direction_combined_dict():
                     elif key not in converted_dict:
                         converted_dict.update({key:[final]})
     return converted_dict
-
 
 #need to create exon trios for all transcripts with 3 or more exons
 #create trio data base for all exons
@@ -1712,7 +1740,6 @@ def pull_first_last_exon():
     first_exon_dict = {}
     last_exon_dict = {}
     for gene in combined_dict:
-        print(gene)
         single_gene = combined_dict[gene]
         if len(single_gene) == 1:
             single = single_gene[0]
