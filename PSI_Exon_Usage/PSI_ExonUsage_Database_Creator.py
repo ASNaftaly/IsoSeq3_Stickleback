@@ -1383,7 +1383,7 @@ def combine_ensembl_isoseq():
                                         final_combined_dict.update({key:[iso]})
                 #if the ensembl gene is not in isoseq
                 #else:
-                    #final_combined_dict.update({key:[single_ensembl]})
+                #    final_combined_dict.update({key:[single_ensembl]})
     for key2 in isoseq_dict:
         if key2 not in ensembl_dict:
             single_key2 = isoseq_dict[key2]
@@ -1540,7 +1540,7 @@ def convert_direction_combined_dict():
             #if strand == +, the exons should increase in position
             if strand == "+":
                 new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
-                final = single_key_info + new_exons
+                final = single_key_info + [new_exons]
                 converted_dict.update({key:final})
             #if strand == -, the exons should decrease in position
             elif strand == "-":
@@ -1551,7 +1551,7 @@ def convert_direction_combined_dict():
                 for exon in new_exons:
                     exon.reverse()
                     final_exons.append(exon)
-                final = single_key_info + final_exons
+                final = single_key_info + [final_exons]
                 converted_dict.update({key:final})
         #if there are multiple isoforms for a gene
         else:
@@ -1568,7 +1568,7 @@ def convert_direction_combined_dict():
                 #if strand == +, the exons should increase in position
                 if strand == "+":
                     new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
-                    final = single_info + new_exons
+                    final = single_info + [new_exons]
                     if key in converted_dict:
                         converted_dict[key].append(final)
                     elif key not in converted_dict:
@@ -1582,7 +1582,7 @@ def convert_direction_combined_dict():
                     for exon in new_exons:
                         exon.reverse()
                         final_exons.append(exon)
-                    final = single_info + final_exons
+                    final = single_info + [final_exons]
                     if key in converted_dict:
                         converted_dict[key].append(final)
                     elif key not in converted_dict:
@@ -1611,29 +1611,16 @@ def create_trios():
                 strand = single[4]
             gene_id = single[0]
             exons = single[len(single)-1]
-            if strand == "+":
-                x = 0
-                while x < len(exons)-2:
-                    exon_trio = [exons[x], exons[x+1], exons[x+2]]
-                    dict_value = [transcript_id, chr_num, strand, exon_trio]
-                    if gene_id in trios_dict:
-                        trios_dict[gene_id].append(dict_value)
-                    elif gene_id not in trios_dict:
-                        trios_dict.update({gene_id:[dict_value]})
-                    x += 1
-            elif strand == "-":
-                exons.reverse()
-                reverse_exons = [group[::-1] for group in exons]
-                x = 0
-                while x < len(reverse_exons)-2:
-                    exon_trio = [reverse_exons[x], reverse_exons[x+1], reverse_exons[x+2]]
-                    dict_value = [transcript_id, chr_num, strand, exon_trio]
-                    if gene_id in trios_dict:
-                        trios_dict[gene_id].append(dict_value)
-                    elif gene_id not in trios_dict:
-                        trios_dict.update({gene_id:[dict_value]})
-                    x += 1
-        if (len(single_transcript) == 5 or len(single_transcript) == 6) and isinstance(single_transcript[0], list) == False:
+            x = 0
+            while x < len(exons)-2:
+                exon_trio = [exons[x], exons[x+1], exons[x+2]]
+                dict_value = [transcript_id, chr_num, strand, exon_trio]
+                if gene_id in trios_dict:
+                    trios_dict[gene_id].append(dict_value)
+                elif gene_id not in trios_dict:
+                    trios_dict.update({gene_id:[dict_value]})
+                x += 1
+        elif (len(single_transcript) == 5 or len(single_transcript) == 6) and isinstance(single_transcript[0], list) == False:
             if len(single_transcript) == 5:
                 transcript_id = single_transcript[1]
                 chr_num = single_transcript[2]
@@ -1644,28 +1631,15 @@ def create_trios():
                 strand = single_transcript[4]
             gene_id = single_transcript[0]
             exons = single_transcript[len(single_transcript)-1]
-            if strand == "+":
-                x = 0
-                while x < len(exons)-2:
-                    exon_trio = [exons[x], exons[x+1], exons[x+2]]
-                    dict_value = [transcript_id, chr_num, strand, exon_trio]
-                    if gene_id in trios_dict:
-                        trios_dict[gene_id].append(dict_value)
-                    elif gene_id not in trios_dict:
-                        trios_dict.update({gene_id:[dict_value]})
-                    x += 1
-            elif strand == "-":
-                exons.reverse()
-                reverse_exons = [group[::-1] for group in exons]
-                x = 0
-                while x < len(reverse_exons)-2:
-                    exon_trio = [reverse_exons[x], reverse_exons[x+1], reverse_exons[x+2]]
-                    dict_value = [transcript_id, chr_num, strand, exon_trio]
-                    if gene_id in trios_dict:
-                        trios_dict[gene_id].append(dict_value)
-                    elif gene_id not in trios_dict:
-                        trios_dict.update({gene_id:[dict_value]})
-                    x += 1
+            x = 0
+            while x < len(exons)-2:
+                exon_trio = [exons[x], exons[x+1], exons[x+2]]
+                dict_value = [transcript_id, chr_num, strand, exon_trio]
+                if gene_id in trios_dict:
+                    trios_dict[gene_id].append(dict_value)
+                elif gene_id not in trios_dict:
+                    trios_dict.update({gene_id:[dict_value]})
+                x += 1
         else:
             for single in single_transcript:
                 if len(single) == 5:
@@ -1678,31 +1652,16 @@ def create_trios():
                     strand = single[4]
                 gene_id = single[0]
                 exons = single[len(single)-1]
-                if strand == "+":
-                    x = 0
-                    while x < len(exons)-2:
-                        exon_trio = [exons[x], exons[x+1], exons[x+2]]
-                        dict_value = [transcript_id, chr_num, strand, exon_trio]
-                        if gene_id in trios_dict:
-                            trios_dict[gene_id].append(dict_value)
-                        elif gene_id not in trios_dict:
-                            trios_dict.update({gene_id:[dict_value]})
-                        x += 1
-                elif strand == "-":
-                    exons.reverse()
-                    reverse_exons = [group[::-1] for group in exons]
-                    x = 0
-                    while x < len(reverse_exons)-2:
-                        exon_trio = [reverse_exons[x], reverse_exons[x+1], reverse_exons[x+2]]
-                        dict_value = [transcript_id, chr_num, strand, exon_trio]
-                        if gene_id in trios_dict:
-                            trios_dict[gene_id].append(dict_value)
-                        elif gene_id not in trios_dict:
-                            trios_dict.update({gene_id:[dict_value]})
-                        x += 1
+                x = 0
+                while x < len(exons)-2:
+                    exon_trio = [exons[x], exons[x+1], exons[x+2]]
+                    dict_value = [transcript_id, chr_num, strand, exon_trio]
+                    if gene_id in trios_dict:
+                        trios_dict[gene_id].append(dict_value)
+                    elif gene_id not in trios_dict:
+                        trios_dict.update({gene_id:[dict_value]})
+                    x += 1
     return trios_dict
-
-#create_trios()
 
 #need to filter trios dict to remove duplicates of exons (i.e. where two or more transcripts share same exon trio)
 #will also need to address the differences in start and end positions for the first and last exon for transcripts from the same gene
@@ -1749,10 +1708,11 @@ def filter_trios_duplicates():
 #now addressing start and end differences for first and last exon in a transcript
 #first need a separate dictionary with the first exon (start, end) and the last exon (start, end) for every transcript
 def pull_first_last_exon():
-    combined_dict = reduce_combined_dict()
+    combined_dict = convert_direction_combined_dict()
     first_exon_dict = {}
     last_exon_dict = {}
     for gene in combined_dict:
+        print(gene)
         single_gene = combined_dict[gene]
         if len(single_gene) == 1:
             single = single_gene[0]
@@ -1783,8 +1743,6 @@ def pull_first_last_exon():
                     last_exon_dict.update({gene:[last_exon]})
             #exon positions should decrease
             elif strand == "-":
-                exon_pair_0.reverse()
-                exon_pair_last.reverse()
                 #if exon pair at position 0 is the first exon, it should be greater than the last exon start position
                 if int(exon_pair_0[0]) > int(exon_pair_last[0]):
                     first_exon = exon_pair_0
@@ -1829,8 +1787,6 @@ def pull_first_last_exon():
                     last_exon_dict.update({gene:[last_exon]})
             #exon positions should decrease
             elif strand == "-":
-                exon_pair_0.reverse()
-                exon_pair_last.reverse()
                 #if exon pair at position 0 is the first exon, it should be greater than the last exon start position
                 if int(exon_pair_0[0]) > int(exon_pair_last[0]):
                     first_exon = exon_pair_0
@@ -1876,8 +1832,6 @@ def pull_first_last_exon():
                         last_exon_dict.update({gene:[last_exon]})
                 #exon positions should decrease
                 elif strand == "-":
-                    exon_pair_0.reverse()
-                    exon_pair_last.reverse()
                     #if exon pair at position 0 is the first exon, it should be greater than the last exon start position
                     if int(exon_pair_0[0]) > int(exon_pair_last[0]):
                         first_exon = exon_pair_0
@@ -1895,6 +1849,7 @@ def pull_first_last_exon():
                     elif gene not in last_exon_dict:
                         last_exon_dict.update({gene:[last_exon]})
     return first_exon_dict, last_exon_dict
+
 
 #need to filter first and last exons before filtering trios
 def filter_first_exon():
