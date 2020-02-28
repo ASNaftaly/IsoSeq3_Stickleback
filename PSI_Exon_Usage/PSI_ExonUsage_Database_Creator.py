@@ -1521,11 +1521,80 @@ def reduce_combined_dict():
         dups_to_remove = []
     return final_dictionary
 
+#converting reduced combined dictionary so all + strand genes increase in exon positions and all - strand genes decrease in exon positions
+def convert_direction_combined_dict():
+    combined_dict = reduce_combined_dict()
+    converted_dict = {}
+    for key in combined_dict:
+        single_key = combined_dict[key]
+        #if there is only one isoform for a gene
+        if (len(single_key) == 6 or len(single_key) == 5) and isinstance(single_key[0], list) == False:
+            if len(single_key) == 5:
+                strand = single_key[3]
+                exons = single_key[4]
+                single_key_info = single_key[0:len(single_key)-1]
+            elif len(single_key) == 6:
+                strand = single_key[4]
+                exons = single_key[5]
+                single_key_info = single_key[0:len(single_key)-1]
+            #if strand == +, the exons should increase in position
+            if strand == "+":
+                new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
+                final = single_key_info + new_exons
+                converted_dict.update({key:final})
+            #if strand == -, the exons should decrease in position
+            elif strand == "-":
+                final_exons = []
+                #this first sorts all exon pairs (start, end) in descending order
+                new_exons = sorted(exons, key=lambda x: x[0], reverse = True)
+                #because for - strand genes, the second position in a pair is actually the exon start, need to flip all exon pairs
+                for exon in new_exons:
+                    exon.reverse()
+                    final_exons.append(exon)
+                final = single_key_info + final_exons
+                converted_dict.update({key:final})
+        #if there are multiple isoforms for a gene
+        else:
+            #reads through each isoform one at a time
+            for single in single_key:
+                if len(single) == 5:
+                    strand = single[3]
+                    exons = single[4]
+                    single_info = single[0:len(single)-1]
+                elif len(single) == 6:
+                    strand = single[4]
+                    exons = single[5]
+                    single_info = single[0:len(single)-1]
+                #if strand == +, the exons should increase in position
+                if strand == "+":
+                    new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
+                    final = single_info + new_exons
+                    if key in converted_dict:
+                        converted_dict[key].append(final)
+                    elif key not in converted_dict:
+                        converted_dict.update({key:[final]})
+                #if strand == -, the exons should decrease in position
+                elif strand == "-":
+                    final_exons = []
+                    #this first sorts all exon pairs (start, end) in descending order
+                    new_exons = sorted(exons, key=lambda x: x[0], reverse = True)
+                    #because for - strand genes, the second position in a pair is actually the exon start, need to flip all exon pairs
+                    for exon in new_exons:
+                        exon.reverse()
+                        final_exons.append(exon)
+                    final = single_info + final_exons
+                    if key in converted_dict:
+                        converted_dict[key].append(final)
+                    elif key not in converted_dict:
+                        converted_dict.update({key:[final]})
+    return converted_dict
+
+
 #need to create exon trios for all transcripts with 3 or more exons
 #create trio data base for all exons
 #returns a dictionary with key = gene_id and value == [chr_num, strand, C1 start, C1 end, A start, A end, C2 start, C2 end]*number of exons-2
 def create_trios():
-    transcript_dict = reduce_combined_dict()
+    transcript_dict = convert_direction_combined_dict()
     trios_list = []
     trios_dict = {}
     for transcript in transcript_dict:
@@ -1633,7 +1702,7 @@ def create_trios():
                         x += 1
     return trios_dict
 
-
+#create_trios()
 
 #need to filter trios dict to remove duplicates of exons (i.e. where two or more transcripts share same exon trio)
 #will also need to address the differences in start and end positions for the first and last exon for transcripts from the same gene
@@ -1827,12 +1896,134 @@ def pull_first_last_exon():
                         last_exon_dict.update({gene:[last_exon]})
     return first_exon_dict, last_exon_dict
 
+#need to filter first and last exons before filtering trios
+def filter_first_exon():
+    first_exons, last_exons = pull_first_last_exon()
+    filtered_first_exons = {}
+    for gene in first_exons:
+        single_gene = first_exons[gene]
+        if len(single_gene) == 1:
+            single = single_gene[0]
+            filtered_first_exons.update({gene:[single]})
+        elif len(single_gene) > 1:
+            exon_starts = []
+            exon_ends = []
+            for single in single_gene:
+                exon_starts.append(single[0])
+                exon_ends.append(single[1])
+            set_exon_ends = list(set(exon_ends))
+            if len(set_exon_ends) == 1:
+                #want to pull the start position with that is the farthest upstream of gene for this
+                #if gene is on + strand, single[0] < single[1]
+                if int(single[0]) < int(single[1]):
+                    final_start = min(exon_starts)
+                #if gene is on - strand, single[0] > single[1]
+                elif int(single[0]) > int(single[1]):
+                    final_start = max(exon_starts)
+                final_first_exon_full = [final_start, set_exon_ends[0]]
+                filtered_first_exons.update({gene:final_first_exon_full})
+            else:
+                #pulls all indeces that represent a duplicate value
+                duplicates_index = [i for i, x in enumerate(exon_ends) if exon_ends.count(x) > 1]
+                possible_exon_starts = []
+                for index, value in enumerate(exon_ends):
+                    if index in duplicates_index:
+                        possible_exon_starts.append(exon_starts[index])
+                    else:
+                        final_first_exon_full = [exon_starts[index], value]
+                        if gene in filtered_first_exons:
+                            filtered_first_exons[gene].append(final_first_exon_full)
+                        elif gene not in filtered_first_exons:
+                            filtered_first_exons.update({gene:[final_first_exon_full]})
+                duplicates_value = list(set([exon_ends[a] for a in duplicates_index]))
+                if len(duplicates_value) == 1:
+                    #if gene is on + strand, duplicates value (exon end) should be greater than possible_exon_starts[0]; so need to take minimum value from possible_exon_starts to get farthest upstream start site
+                    if duplicates_value[0] > possible_exon_starts[0]:
+                        final_start = min(possible_exon_starts)
+                    #if gene is on - strand, duplicates value (exon end) should be less than possible_exon_starts[0]; so need to take maximum value from possible_exon_starts to get farthest upstream start site
+                    elif duplicates_value[0] < possible_exon_starts[0]:
+                        final_start = max(possible_exon_starts)
+                    final_first_exon_full = [final_start, duplicates_value]
+                    if gene in filtered_first_exons:
+                        filtered_first_exons[gene].append(final_first_exon_full)
+                    elif gene not in filtered_first_exons:
+                        filtered_first_exons.update({gene:[final_first_exon_full]})
+                elif len(duplicates_value) > 1:
+                    print("Need to readdress function filter_first_last_exon for\nDid not code for scenario where multiple different first exons need to be collapsed independently of each other")
+    return filtered_first_exons
+
+
+def filter_last_exon():
+    first_exons, last_exons = pull_first_last_exon()
+    filtered_last_exons = {}
+    for gene in last_exons:
+        #print(gene)
+        single_gene = last_exons[gene]
+        if len(single_gene) == 1:
+            single = single_gene[0]
+            filtered_last_exons.update({gene:[single]})
+        elif len(single_gene) > 1:
+            exon_starts = []
+            exon_ends = []
+            for single in single_gene:
+                #print(single)
+                exon_starts.append(single[0])
+                exon_ends.append(single[1])
+            set_exon_starts = list(set(exon_starts))
+            '''if len(set_exon_starts) == 1:
+                #want to pull the end position with that is the farthest downstream of gene for this
+                #if gene is on + strand, single[0] < single[1]
+                if int(single[0]) < int(single[1]):
+                    final_end = min(exon_ends)
+                #if gene is on - strand, single[0] > single[1]
+                elif int(single[0]) > int(single[1]):
+                    final_end = max(exon_ends)
+                final_last_exon_full = [set_exon_starts[0], final_end]
+                filtered_last_exons.update({gene:final_last_exon_full})
+            else:
+                #pulls all indeces that represent a duplicate value
+                duplicates_index = [i for i, x in enumerate(exon_ends) if exon_ends.count(x) > 1]
+                possible_exon_starts = []
+                for index, value in enumerate(exon_ends):
+                    if index in duplicates_index:
+                        possible_exon_starts.append(exon_starts[index])
+                    else:
+                        final_first_exon_full = [exon_starts[index], value]
+                        if gene in filtered_first_exons:
+                            filtered_first_exons[gene].append(final_first_exon_full)
+                        elif gene not in filtered_first_exons:
+                            filtered_first_exons.update({gene:[final_first_exon_full]})
+                duplicates_value = list(set([exon_ends[a] for a in duplicates_index]))
+                if len(duplicates_value) == 1:
+                    #if gene is on + strand, duplicates value (exon end) should be greater than possible_exon_starts[0]; so need to take minimum value from possible_exon_starts to get farthest upstream start site
+                    if duplicates_value[0] > possible_exon_starts[0]:
+                        final_start = min(possible_exon_starts)
+                    #if gene is on - strand, duplicates value (exon end) should be less than possible_exon_starts[0]; so need to take maximum value from possible_exon_starts to get farthest upstream start site
+                    elif duplicates_value[0] < possible_exon_starts[0]:
+                        final_start = max(possible_exon_starts)
+                    final_first_exon_full = [final_start, duplicates_value]
+                    if gene in filtered_first_exons:
+                        filtered_first_exons[gene].append(final_first_exon_full)
+                    elif gene not in filtered_first_exons:
+                        filtered_first_exons.update({gene:[final_first_exon_full]})
+                else len(duplicates_value) > 1:
+                    print("Need to readdress function filter_first_last_exon for\nDid not code for scenario where multiple different first exons need to be collapsed independently of each other")
+    return filtered_first_exons'''
+
+
+
+#filter_last_exon()
+
+
+
+
+
+
 #need to only filter out first and last exon where the rest of the trio is the same
 def filter_trios_start_ends():
     filtered_dict = filter_trios_duplicates()
     first_exon_dict, last_exon_dict = pull_first_last_exon()
     filtered_dict_2 = {}
-    print(last_exon_dict)
     '''for gene in filtered_dict:
         print(gene)
         single_gene = filtered_dict[gene]
@@ -1885,4 +2076,4 @@ def filter_trios_start_ends():
 
 
 
-filter_trios_start_ends()
+#filter_trios_start_ends()
