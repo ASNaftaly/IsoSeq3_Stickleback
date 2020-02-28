@@ -1676,6 +1676,7 @@ def filter_trios_duplicates():
             exon_trio_list = []
     return filtered_dict
 
+
 #now addressing start and end differences for first and last exon in a transcript
 #first need a separate dictionary with the first exon (start, end) and the last exon (start, end) for every transcript
 def pull_first_last_exon():
