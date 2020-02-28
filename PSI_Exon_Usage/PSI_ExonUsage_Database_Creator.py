@@ -1704,8 +1704,14 @@ def pull_first_last_exon():
                 elif int(exon_pair_0[0]) > int(exon_pair_last[0]):
                     first_exon = exon_pair_last
                     last_exon = exon_pair_0
-                first_exon_dict.update({gene:first_exon})
-                last_exon_dict.update({gene:last_exon})
+                if gene in first_exon_dict:
+                    first_exon_dict[gene].append(first_exon)
+                elif gene not in first_exon_dict:
+                    first_exon_dict.update({gene:[first_exon]})
+                if gene in last_exon_dict:
+                    last_exon_dict[gene].append(last_exon)
+                elif gene not in last_exon_dict:
+                    last_exon_dict.update({gene:[last_exon]})
             #exon positions should decrease
             elif strand == "-":
                 exon_pair_0.reverse()
@@ -1718,8 +1724,14 @@ def pull_first_last_exon():
                 elif int(exon_pair_0[0]) < int(exon_pair_last[0]):
                     first_exon = exon_pair_last
                     last_exon = exon_pair_0
-                first_exon_dict.update({gene:first_exon})
-                last_exon_dict.update({gene:last_exon})
+                if gene in first_exon_dict:
+                    first_exon_dict[gene].append(first_exon)
+                elif gene not in first_exon_dict:
+                    first_exon_dict.update({gene:[first_exon]})
+                if gene in last_exon_dict:
+                    last_exon_dict[gene].append(last_exon)
+                elif gene not in last_exon_dict:
+                    last_exon_dict.update({gene:[last_exon]})
         elif (len(single_gene) == 5 or len(single_gene) == 6) and isinstance(single_gene[0], list) == False:
             if len(single_gene) == 5:
                 strand = single_gene[3]
@@ -1738,8 +1750,14 @@ def pull_first_last_exon():
                 elif int(exon_pair_0[0]) > int(exon_pair_last[0]):
                     first_exon = exon_pair_last
                     last_exon = exon_pair_0
-                first_exon_dict.update({gene:first_exon})
-                last_exon_dict.update({gene:last_exon})
+                if gene in first_exon_dict:
+                    first_exon_dict[gene].append(first_exon)
+                elif gene not in first_exon_dict:
+                    first_exon_dict.update({gene:[first_exon]})
+                if gene in last_exon_dict:
+                    last_exon_dict[gene].append(last_exon)
+                elif gene not in last_exon_dict:
+                    last_exon_dict.update({gene:[last_exon]})
             #exon positions should decrease
             elif strand == "-":
                 exon_pair_0.reverse()
@@ -1752,8 +1770,14 @@ def pull_first_last_exon():
                 elif int(exon_pair_0[0]) < int(exon_pair_last[0]):
                     first_exon = exon_pair_last
                     last_exon = exon_pair_0
-                first_exon_dict.update({gene:first_exon})
-                last_exon_dict.update({gene:last_exon})
+                if gene in first_exon_dict:
+                    first_exon_dict[gene].append(first_exon)
+                elif gene not in first_exon_dict:
+                    first_exon_dict.update({gene:[first_exon]})
+                if gene in last_exon_dict:
+                    last_exon_dict[gene].append(last_exon)
+                elif gene not in last_exon_dict:
+                    last_exon_dict.update({gene:[last_exon]})
         else:
             for s in single_gene:
                 if len(s) == 5:
@@ -1773,8 +1797,14 @@ def pull_first_last_exon():
                     elif int(exon_pair_0[0]) > int(exon_pair_last[0]):
                         first_exon = exon_pair_last
                         last_exon = exon_pair_0
-                    first_exon_dict.update({gene:first_exon})
-                    last_exon_dict.update({gene:last_exon})
+                    if gene in first_exon_dict:
+                        first_exon_dict[gene].append(first_exon)
+                    elif gene not in first_exon_dict:
+                        first_exon_dict.update({gene:[first_exon]})
+                    if gene in last_exon_dict:
+                        last_exon_dict[gene].append(last_exon)
+                    elif gene not in last_exon_dict:
+                        last_exon_dict.update({gene:[last_exon]})
                 #exon positions should decrease
                 elif strand == "-":
                     exon_pair_0.reverse()
@@ -1787,25 +1817,24 @@ def pull_first_last_exon():
                     elif int(exon_pair_0[0]) < int(exon_pair_last[0]):
                         first_exon = exon_pair_last
                         last_exon = exon_pair_0
-                    first_exon_dict.update({gene:first_exon})
-                    last_exon_dict.update({gene:last_exon})
-                if gene in first_exon_dict:
-                    first_exon_dict[gene].append(first_exon)
-                elif gene not in first_exon_dict:
-                    first_exon_dict.update({gene:[first_exon]})
-                if gene in last_exon_dict:
-                    last_exon_dict[gene].append(last_exon)
-                elif gene not in last_exon_dict:
-                    last_exon_dict.update({gene:[last_exon]})
+                    if gene in first_exon_dict:
+                        first_exon_dict[gene].append(first_exon)
+                    elif gene not in first_exon_dict:
+                        first_exon_dict.update({gene:[first_exon]})
+                    if gene in last_exon_dict:
+                        last_exon_dict[gene].append(last_exon)
+                    elif gene not in last_exon_dict:
+                        last_exon_dict.update({gene:[last_exon]})
     return first_exon_dict, last_exon_dict
 
 #need to only filter out first and last exon where the rest of the trio is the same
 def filter_trios_start_ends():
     filtered_dict = filter_trios_duplicates()
     first_exon_dict, last_exon_dict = pull_first_last_exon()
-    print(filtered_dict)
-    '''filtered_dict_2 = {}
-    for gene in filtered_dict:
+    filtered_dict_2 = {}
+    print(last_exon_dict)
+    '''for gene in filtered_dict:
+        print(gene)
         single_gene = filtered_dict[gene]
         single_first_exons = first_exon_dict[gene]
         single_last_exons = last_exon_dict[gene]
@@ -1815,8 +1844,6 @@ def filter_trios_start_ends():
         first_exon_test_list = []
         last_exon_test_list = []
         final_exon_trio_list = []
-        #single_gene_exon_trios_list = [item for t in single_gene_exon_trios for item in t]
-        #print(single_gene_exon_trios_list)
         for single_trio in single_gene_exon_trios:
             single_trio_list = [list(ele) for ele in single_trio]
             if single_trio_list[0] in single_first_exons:
@@ -1825,6 +1852,8 @@ def filter_trios_start_ends():
                 last_exon_test_list.append(single_trio_list)
             else:
                 final_exon_trio_list.append(single_trio_list)
+        print(first_exon_test_list)
+        print(last_exon_test_list)
         start_exons = []
         for start_diff in first_exon_test_list:
             start_exons.append(start_diff[0][0])
@@ -1856,4 +1885,4 @@ def filter_trios_start_ends():
 
 
 
-#filter_trios_start_ends()
+filter_trios_start_ends()
