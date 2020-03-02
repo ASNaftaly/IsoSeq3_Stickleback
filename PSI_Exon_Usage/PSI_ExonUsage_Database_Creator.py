@@ -668,8 +668,8 @@ def combine_ensembl_isoseq():
                                     final_combined_dict.update({key:[single]})
                                     final_combined_dict[key].append(isoform)
             #if the ensembl gene is not in isoseq
-            #else:
-            #    final_combined_dict.update({key:[single_ensembl]})
+            else:
+                final_combined_dict.update({key:[single_ensembl]})
         #if ensembl gene has multiple entries
         else:
             for ens_single in single_ensembl:
@@ -1382,8 +1382,8 @@ def combine_ensembl_isoseq():
                                         #final_combined_dict.update({key:[ens_single]})
                                         final_combined_dict.update({key:[iso]})
                 #if the ensembl gene is not in isoseq
-                #else:
-                #    final_combined_dict.update({key:[single_ensembl]})
+                else:
+                    final_combined_dict.update({key:[single_ensembl]})
     for key2 in isoseq_dict:
         if key2 not in ensembl_dict:
             single_key2 = isoseq_dict[key2]
@@ -1535,11 +1535,11 @@ def convert_direction_combined_dict():
             if len(single) == 5:
                 strand = single[3]
                 exons = single[4]
-                single_key_info = single_key[0:len(single_key)-1]
+                single_key_info = single_key[0][0:len(single)-1]
             elif len(single_key) == 6:
                 strand = single_key[4]
                 exons = single_key[5]
-                single_key_info = single_key[0:len(single_key)-1]
+                single_key_info = single_key[0][0:len(single)-1]
             #if strand == +, the exons should increase in position
             if strand == "+":
                 new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
@@ -1561,11 +1561,11 @@ def convert_direction_combined_dict():
             if len(single_key) == 5:
                 strand = single_key[3]
                 exons = single_key[4]
-                single_key_info = single_key[0:len(single_key)-1]
+                single_key_info = single_key[0:len(single_key)-2]
             elif len(single_key) == 6:
                 strand = single_key[4]
                 exons = single_key[5]
-                single_key_info = single_key[0:len(single_key)-1]
+                single_key_info = single_key[0:len(single_key)-2]
             #if strand == +, the exons should increase in position
             if strand == "+":
                 new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
@@ -1589,11 +1589,11 @@ def convert_direction_combined_dict():
                 if len(single) == 5:
                     strand = single[3]
                     exons = single[4]
-                    single_info = single[0:len(single)-1]
+                    single_info = single[0:len(single)-2]
                 elif len(single) == 6:
                     strand = single[4]
                     exons = single[5]
-                    single_info = single[0:len(single)-1]
+                    single_info = single[0:len(single)-2]
                 #if strand == +, the exons should increase in position
                 if strand == "+":
                     new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
@@ -1733,10 +1733,12 @@ def pull_first_last_exon():
     first_exon_dict = {}
     last_exon_dict = {}
     for gene in combined_dict:
-        single_gene = combined_dict[gene]
-        if len(single_gene) == 1:
-            single = single_gene[0]
-            if len(single) == 5:
+        single_entry = combined_dict[gene]
+        #print(single_entry)
+        #print(len(single_entry))
+        if len(single_entry) == 1:
+            single = single_entry[0]
+            '''if len(single) == 5:
                 strand = single[3]
             elif len(single) == 6:
                 strand = single[4]
@@ -1868,7 +1870,9 @@ def pull_first_last_exon():
                         last_exon_dict[gene].append(last_exon)
                     elif gene not in last_exon_dict:
                         last_exon_dict.update({gene:[last_exon]})
-    return first_exon_dict, last_exon_dict
+    return first_exon_dict, last_exon_dict'''
+
+pull_first_last_exon()
 
 
 #need to filter first and last exons before filtering trios
