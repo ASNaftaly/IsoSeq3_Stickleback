@@ -668,8 +668,8 @@ def combine_ensembl_isoseq():
                                     final_combined_dict.update({key:[single]})
                                     final_combined_dict[key].append(isoform)
             #if the ensembl gene is not in isoseq
-            else:
-                final_combined_dict.update({key:[single_ensembl]})
+            #else:
+            #    final_combined_dict.update({key:[single_ensembl]})
         #if ensembl gene has multiple entries
         else:
             for ens_single in single_ensembl:
@@ -1382,8 +1382,8 @@ def combine_ensembl_isoseq():
                                         #final_combined_dict.update({key:[ens_single]})
                                         final_combined_dict.update({key:[iso]})
                 #if the ensembl gene is not in isoseq
-                else:
-                    final_combined_dict.update({key:[single_ensembl]})
+                #else:
+                #    final_combined_dict.update({key:[single_ensembl]})
     for key2 in isoseq_dict:
         if key2 not in ensembl_dict:
             single_key2 = isoseq_dict[key2]
@@ -1640,6 +1640,7 @@ def create_trios():
             gene_id = single[0]
             exons = single[len(single)-1]
             x = 0
+            #iterates through exons to create trios
             while x < len(exons)-2:
                 exon_trio = [exons[x], exons[x+1], exons[x+2]]
                 dict_value = [transcript_id, chr_num, strand, exon_trio]
@@ -1660,6 +1661,7 @@ def create_trios():
             gene_id = single_transcript[0]
             exons = single_transcript[len(single_transcript)-1]
             x = 0
+            #iterates through exons to create trios
             while x < len(exons)-2:
                 exon_trio = [exons[x], exons[x+1], exons[x+2]]
                 dict_value = [transcript_id, chr_num, strand, exon_trio]
@@ -1681,6 +1683,7 @@ def create_trios():
                 gene_id = single[0]
                 exons = single[len(single)-1]
                 x = 0
+                #iterates through exons to create trios
                 while x < len(exons)-2:
                     exon_trio = [exons[x], exons[x+1], exons[x+2]]
                     dict_value = [transcript_id, chr_num, strand, exon_trio]
@@ -1691,11 +1694,13 @@ def create_trios():
                     x += 1
     return trios_dict
 
+
 #need to filter trios dict to remove duplicates of exons (i.e. where two or more transcripts share same exon trio)
 #will also need to address the differences in start and end positions for the first and last exon for transcripts from the same gene
 #need to filter trios dict to get all internal exon trios and remove duplicates or condense pairs where first or last exon is different
 
 #this function first filters out complete duplicates of exon trios from combined reduced dictionary
+#only removes exact duplicates (where all three exon start and ends for a trio match another exon trio)
 def filter_trios_duplicates():
     trios_dict = create_trios()
     filtered_trios_dict = {}
@@ -1703,7 +1708,8 @@ def filter_trios_duplicates():
     filtered_dict = {}
     for gene in trios_dict:
         single_gene = trios_dict[gene]
-        if len(single_gene) == 1:
+        #reads through exon trios for each gene (all combined from every isoform)
+        for single in single_gene:
             chr_num = single[1]
             strand = single[2]
             exon_trio = single[3]
@@ -1711,27 +1717,14 @@ def filter_trios_duplicates():
             for exon_pair in exon_trio:
                 exon_tuple = tuple(exon_pair)
                 exon_trio_tuple.append(exon_tuple)
-            exon_trio_tuple_list = [tuple(t) for t in exon_trio_tuple]
-            set_tuple = list(set(exon_trio_tuple_list))
-            final_dictionary_value = [chr_num, strand, set_tuple]
-            filtered_dict.update({gene:final_dictionary_value})
-        elif len(single_gene) > 1:
-            for single in single_gene:
-                chr_num = single[1]
-                strand = single[2]
-                exon_trio = single[3]
-                exon_trio_tuple = []
-                for exon_pair in exon_trio:
-                    exon_tuple = tuple(exon_pair)
-                    exon_trio_tuple.append(exon_tuple)
-                exon_trio_list.append(exon_trio_tuple)
-            exon_trio_tuple_list = [tuple(t) for t in exon_trio_list]
-            set_tuple = list(set(exon_trio_tuple_list))
-            final_dictionary_value = [chr_num, strand, set_tuple]
-            filtered_dict.update({gene:final_dictionary_value})
-            exon_trio_list = []
+            exon_trio_list.append(exon_trio_tuple)
+        exon_trio_tuple_list = [tuple(t) for t in exon_trio_list]
+        #removes duplicate exon trios
+        set_tuple = list(set(exon_trio_tuple_list))
+        final_dictionary_value = [chr_num, strand, set_tuple]
+        filtered_dict.update({gene:final_dictionary_value})
+        exon_trio_list = []
     return filtered_dict
-
 
 #now addressing start and end differences for first and last exon in a transcript
 #first need a separate dictionary with the first exon (start, end) and the last exon (start, end) for every transcript
@@ -1995,10 +1988,6 @@ def filter_last_exon():
 
 
 #filter_last_exon()
-
-
-
-
 
 
 #need to only filter out first and last exon where the rest of the trio is the same
