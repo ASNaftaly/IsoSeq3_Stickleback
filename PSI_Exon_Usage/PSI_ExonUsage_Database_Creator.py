@@ -2002,31 +2002,56 @@ def filter_trios_start_ends():
     filtered_dict = filter_trios_duplicates()
     filtered_first_exons = filter_first_exon()
     filtered_last_exons = filter_last_exon()
-    print(filtered_last_exons)
-    filtered_dict_2 = {}
-    '''for gene in filtered_dict:
-        print(gene)
+    filtered_dict_final = {}
+    for gene in filtered_dict:
         single_gene = filtered_dict[gene]
-        single_first_exons = first_exon_dict[gene]
-        single_last_exons = last_exon_dict[gene]
+        single_first_exons = filtered_first_exons[gene]
+        single_last_exons = filtered_last_exons[gene]
         chr_num = single_gene[0]
         strand = single_gene[1]
         single_gene_exon_trios = single_gene[2]
         first_exon_test_list = []
         last_exon_test_list = []
-        final_exon_trio_list = []
+        remaining_exon_trio_list = []
         for single_trio in single_gene_exon_trios:
             single_trio_list = [list(ele) for ele in single_trio]
-            if single_trio_list[0] in single_first_exons:
-                first_exon_test_list.append(single_trio_list)
-            elif single_trio_list[2] in single_last_exons:
-                last_exon_test_list.append(single_trio_list)
-            else:
-                final_exon_trio_list.append(single_trio_list)
-        print(first_exon_test_list)
-        print(last_exon_test_list)
-        start_exons = []
-        for start_diff in first_exon_test_list:
+            first_exon = single_trio_list[0]
+            first_exon_start = first_exon[0]
+            first_exon_end = first_exon[1]
+            last_exon = single_trio_list[2]
+            last_exon_start = last_exon[0]
+            last_exon_end = last_exon[1]
+            if len(single_first_exons) == 2 and isinstance(single_first_exons[0], list) == False:
+                if first_exon_end == single_first_exons[1]:
+                    first_exon_test_list.append(single_trio_list)
+                else:
+                    remaining_exon_trio_list.append(single_trio_list)
+            elif isinstance(single_first_exons[0], list) == True:
+                for value in single_first_exons:
+                    if first_exon_end == value[1]:
+                        first_exon_test_list.append(single_trio_list)
+                    else:
+                        remaining_exon_trio_list.append(single_trio_list)
+            if len(single_last_exons) == 2 and isinstance(single_last_exons[0], list) == False:
+                if last_exon_start == single_last_exons[0]:
+                    last_exon_test_list.append(single_trio_list)
+                else:
+                    remaining_exon_trio_list.append(single_trio_list)
+            elif isinstance(single_last_exons[0], list) == True:
+                for value in single_last_exons:
+                    if last_exon_start == value[0]:
+                        last_exon_test_list.append(single_trio_list)
+                    else:
+                        remaining_exon_trio_list.append(single_trio_list)
+        #removing exon trios from remaining exon trio list if in either first_exon_test_list or last_exon_test_list
+        for trio in first_exon_test_list:
+            if trio in remaining_exon_trio_list:
+                remaining_exon_trio_list.remove(trio)
+        for trio_2 in last_exon_test_list:
+            if trio_2 in remaining_exon_trio_list:
+                remaining_exon_trio_list.remove(trio_2)
+        print(len(remaining_exon_trio_list))
+        '''for start_diff in first_exon_test_list:
             start_exons.append(start_diff[0][0])
             sd_exon_1_end = start_diff[0][1]
             sd_exon_2_start = start_diff[1][0]
