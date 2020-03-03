@@ -1840,7 +1840,7 @@ def filter_first_exon():
         #then the exon start/end can immediately be added to the final dictionary
         if len(single_gene) == 1:
             single = single_gene[0]
-            filtered_first_exons.update({gene:[single]})
+            filtered_first_exons.update({gene:single})
         #if there is more than 1 isoform for a gene, there will be many exons that count as the start exon
         #need to collapse down any starting exons that end at the same position (alternative start sites)
         elif len(single_gene) > 1:
@@ -1880,15 +1880,13 @@ def filter_first_exon():
                 #pulls all indeces that represent a duplicate value
                 duplicates_index = [i for i, x in enumerate(exon_ends) if exon_ends.count(x) > 1]
                 possible_exon_starts = []
-                #print(exon_starts)
-                #print(exon_ends)
-                for index, value in enumerate(exon_ends):
-                    #if ends value is in duplicates index, add the starting value to a new list
+                for index, value in enumerate(exon_starts):
+                    #if starting value is in duplicates index, add the ending value to a new list
                     if index in duplicates_index:
                         possible_exon_starts.append(exon_starts[index])
-                    #if the ends value is not in the duplicates list, can just add start, end combo to filtered exon dictionary
+                    #if the starting value is not in the duplicates list, can just add start, end combo to filtered exon dictionary
                     else:
-                        final_first_exon_full = [exon_starts[index], value]
+                        final_first_exon_full = [value, exon_ends[index]]
                         if gene in filtered_first_exons:
                             filtered_first_exons[gene].append(final_first_exon_full)
                         elif gene not in filtered_first_exons:
@@ -1920,21 +1918,28 @@ def filter_last_exon():
     first_exons, last_exons = pull_first_last_exon()
     filtered_last_exons = {}
     for gene in last_exons:
-        #print(gene)
         single_gene = last_exons[gene]
+        #if there is only 1 isoform for a gene, there will be only 1 last exon
+        #then the exon start/end can immediately be added to the final dictionary
         if len(single_gene) == 1:
             single = single_gene[0]
-            filtered_last_exons.update({gene:[single]})
+            filtered_last_exons.update({gene:single})
+        #if there is more than 1 isoform for a gene, there will be many exons that count as the last exon
+        #need to collapse down any ending exons that start at the same position (alternative end sites)
         elif len(single_gene) > 1:
             exon_starts = []
             exon_ends = []
+            #iterates through the last exons from all the isoforms
             for single in single_gene:
-                #print(single)
                 exon_starts.append(single[0])
                 exon_ends.append(single[1])
+            #reduces the exon starts using set
+            #this does not retain the order of the list
             set_exon_starts = list(set(exon_starts))
+            #if the set exon starts == 1, this means all of the last exons are the same with alternative end sites
             if len(set_exon_starts) == 1:
-                #want to pull the end position with that is the farthest downstream of gene for this
+                #want to pull the ending position with that is the farthest downstream of gene for this
+                #examines a single exon pair to determine direction
                 #if gene is on + strand, single[0] < single[1]
                 if int(single[0]) < int(single[1]):
                     final_end = min(exon_ends)
@@ -1943,45 +1948,61 @@ def filter_last_exon():
                     final_end = max(exon_ends)
                 final_last_exon_full = [set_exon_starts[0], final_end]
                 filtered_last_exons.update({gene:final_last_exon_full})
+            #if the set exon starts == len(exon_starts), no last exons are alternative end sites (i.e. no duplicates in starting position of last exon)
+            #add all exons to filtered exon dictionary
+            elif len(set_exon_starts) == len(exon_starts):
+                for index, value in enumerate(exon_ends):
+                    final_last_exon_full = [exon_starts[index], value]
+                    if gene in filtered_last_exons:
+                        filtered_last_exons[gene].append(final_last_exon_full)
+                    elif gene not in filtered_last_exons:
+                        filtered_last_exons.update({gene:[final_last_exon_full]})
+            #if the set exon starts > 1 and != len(exon_starts), this means there are duplicate start sites present, but there are also unique start sites
+            #will need to sort through these values more carefully to condense the duplicate values, but keep the unique ones
             else:
                 #pulls all indeces that represent a duplicate value
-                duplicates_index = [i for i, x in enumerate(exon_ends) if exon_ends.count(x) > 1]
-                possible_exon_starts = []
+                duplicates_index = [i for i, x in enumerate(exon_starts) if exon_starts.count(x) > 1]
+                possible_exon_ends = []
                 for index, value in enumerate(exon_ends):
+                    #if starting value is in duplicates index, add the ending value to a new list
                     if index in duplicates_index:
-                        possible_exon_starts.append(exon_starts[index])
+                        possible_exon_ends.append(exon_ends[index])
+                    #if the starting value is not in the duplicates list, can just add start, end combo to filtered exon dictionary
                     else:
-                        final_first_exon_full = [exon_starts[index], value]
-                        if gene in filtered_first_exons:
-                            filtered_first_exons[gene].append(final_first_exon_full)
-                        elif gene not in filtered_first_exons:
-                            filtered_first_exons.update({gene:[final_first_exon_full]})
-                duplicates_value = list(set([exon_ends[a] for a in duplicates_index]))
-                if len(duplicates_value) == 1:
-                    #if gene is on + strand, duplicates value (exon end) should be greater than possible_exon_starts[0]; so need to take minimum value from possible_exon_starts to get farthest upstream start site
-                    if duplicates_value[0] > possible_exon_starts[0]:
-                        final_start = min(possible_exon_starts)
-                    #if gene is on - strand, duplicates value (exon end) should be less than possible_exon_starts[0]; so need to take maximum value from possible_exon_starts to get farthest upstream start site
-                    elif duplicates_value[0] < possible_exon_starts[0]:
-                        final_start = max(possible_exon_starts)
-                    final_first_exon_full = [final_start, duplicates_value]
-                    if gene in filtered_first_exons:
-                        filtered_first_exons[gene].append(final_first_exon_full)
-                    elif gene not in filtered_first_exons:
-                        filtered_first_exons.update({gene:[final_first_exon_full]})
-                elif len(duplicates_value) > 1:
-                    print("Need to readdress function filter_first_last_exon for\nDid not code for scenario where multiple different first exons need to be collapsed independently of each other")
-    return filtered_first_exons
-
-
-
-#filter_last_exon()
+                        final_last_exon_full = [exon_starts[index], value]
+                        if gene in filtered_last_exons:
+                            filtered_last_exons[gene].append(final_last_exon_full)
+                        elif gene not in filtered_last_exons:
+                            filtered_last_exons.update({gene:[final_last_exon_full]})
+                duplicates_value = list(set([exon_starts[a] for a in duplicates_index]))
+                for val in duplicates_value:
+                    single_dup_index_list = [b for b in range(len(exon_starts)) if exon_starts[b] == val]
+                    single_dup_starts_list = []
+                    single_dup_ends_list = []
+                    for ind in single_dup_index_list:
+                        single_dup_starts_list.append(exon_starts[ind])
+                        single_dup_ends_list.append(exon_ends[ind])
+                    #if start is < than end, this means the gene is on the + strand
+                    if single_dup_starts_list[0] < single_dup_ends_list[0]:
+                        final_end = min(single_dup_ends_list)
+                        final_last_exon_full = [single_dup_starts_list[0], final_end]
+                    #if start is > than end, this means the gene is on the - strand
+                    elif single_dup_starts_list[0] > single_dup_ends_list[0]:
+                        final_end = max(single_dup_ends_list)
+                        final_last_exon_full = [single_dup_starts_list[0], final_end]
+                    if gene in filtered_last_exons:
+                        filtered_last_exons[gene].append(final_last_exon_full)
+                    elif gene not in filtered_last_exons:
+                        filtered_last_exons.update({gene:[final_last_exon_full]})
+    return filtered_last_exons
 
 
 #need to only filter out first and last exon where the rest of the trio is the same
 def filter_trios_start_ends():
     filtered_dict = filter_trios_duplicates()
-    first_exon_dict, last_exon_dict = pull_first_last_exon()
+    filtered_first_exons = filter_first_exon()
+    filtered_last_exons = filter_last_exon()
+    print(filtered_last_exons)
     filtered_dict_2 = {}
     '''for gene in filtered_dict:
         print(gene)
@@ -2035,4 +2056,4 @@ def filter_trios_start_ends():
 
 
 
-#filter_trios_start_ends()
+filter_trios_start_ends()
