@@ -1894,41 +1894,26 @@ def filter_first_exon():
                         elif gene not in filtered_first_exons:
                             filtered_first_exons.update({gene:[final_first_exon_full]})
                 duplicates_value = list(set([exon_ends[a] for a in duplicates_index]))
-                if len(duplicates_value) == 1:
-                    #if gene is on + strand, duplicates value (exon end) should be greater than possible_exon_starts[0]; so need to take minimum value from possible_exon_starts to get farthest upstream start site
-                    if duplicates_value[0] > possible_exon_starts[0]:
-                        final_start = min(possible_exon_starts)
-                    #if gene is on - strand, duplicates value (exon end) should be less than possible_exon_starts[0]; so need to take maximum value from possible_exon_starts to get farthest upstream start site
-                    elif duplicates_value[0] < possible_exon_starts[0]:
-                        final_start = max(possible_exon_starts)
-                    final_first_exon_full = [final_start, duplicates_value]
+                for val in duplicates_value:
+                    single_dup_index_list = [b for b in range(len(exon_ends)) if exon_ends[b] == val]
+                    single_dup_starts_list = []
+                    single_dup_ends_list = []
+                    for ind in single_dup_index_list:
+                        single_dup_starts_list.append(exon_starts[ind])
+                        single_dup_ends_list.append(exon_ends[ind])
+                    #if start is < than end, this means the gene is on the + strand
+                    if single_dup_starts_list[0] < single_dup_ends_list[0]:
+                        final_start = min(single_dup_starts_list)
+                        final_first_exon_full = [final_start, single_dup_ends_list[0]]
+                    #if start is > than end, this means the gene is on the - strand
+                    elif single_dup_starts_list[0] > single_dup_ends_list[0]:
+                        final_start = max(single_dup_starts_list)
+                        final_first_exon_full = [final_start, single_dup_ends_list[0]]
                     if gene in filtered_first_exons:
                         filtered_first_exons[gene].append(final_first_exon_full)
                     elif gene not in filtered_first_exons:
                         filtered_first_exons.update({gene:[final_first_exon_full]})
-                elif len(duplicates_value) > 1:
-                    for val in duplicates_value:
-                        single_dup_index_list = [b for b in range(len(exon_ends)) if exon_ends[b] == val]
-                        single_dup_starts_list = []
-                        single_dup_ends_list = []
-                        for ind in single_dup_index_list:
-                            single_dup_starts_list.append(exon_starts[ind])
-                            single_dup_ends_list.append(exon_ends[ind])
-                        #if start is < than end, this means the gene is on the + strand
-                        if single_dup_starts_list[0] < single_dup_ends_list[0]:
-                            final_start = min(single_dup_starts_list)
-                            final_first_exon_full = [final_start, single_dup_ends_list[0]]
-                        #if start is > than end, this means the gene is on the - strand
-                        elif single_dup_starts_list[0] > single_dup_ends_list[0]:
-                            final_start = max(single_dup_starts_list)
-                            final_first_exon_full = [final_start, single_dup_ends_list[0]]
-                        if gene in filtered_first_exons:
-                            filtered_first_exons[gene].append(final_first_exon_full)
-                        elif gene not in filtered_first_exons:
-                            filtered_first_exons.update({gene:[final_first_exon_full]})
     return filtered_first_exons
-
-filter_first_exon()
 
 
 def filter_last_exon():
