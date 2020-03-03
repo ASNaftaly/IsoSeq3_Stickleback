@@ -668,8 +668,8 @@ def combine_ensembl_isoseq():
                                     final_combined_dict.update({key:[single]})
                                     final_combined_dict[key].append(isoform)
             #if the ensembl gene is not in isoseq
-            else:
-                final_combined_dict.update({key:[single_ensembl]})
+            #else:
+            #    final_combined_dict.update({key:[single_ensembl]})
         #if ensembl gene has multiple entries
         else:
             for ens_single in single_ensembl:
@@ -1382,8 +1382,8 @@ def combine_ensembl_isoseq():
                                         #final_combined_dict.update({key:[ens_single]})
                                         final_combined_dict.update({key:[iso]})
                 #if the ensembl gene is not in isoseq
-                else:
-                    final_combined_dict.update({key:[single_ensembl]})
+                #else:
+                #    final_combined_dict.update({key:[single_ensembl]})
     for key2 in isoseq_dict:
         if key2 not in ensembl_dict:
             single_key2 = isoseq_dict[key2]
@@ -1830,23 +1830,33 @@ def pull_first_last_exon():
 
 
 #need to filter first and last exons before filtering trios
+#this filtering is collapsing varying start sites and end sites to retain the start/stop position that is the farthest upstream/downstream
 def filter_first_exon():
     first_exons, last_exons = pull_first_last_exon()
     filtered_first_exons = {}
     for gene in first_exons:
         single_gene = first_exons[gene]
+        #if there is only 1 isoform for a gene, there will be only 1 first exon
+        #then the exon start/end can immediately be added to the final dictionary
         if len(single_gene) == 1:
             single = single_gene[0]
             filtered_first_exons.update({gene:[single]})
+        #if there is more than 1 isoform for a gene, there will be many exons that count as the start exon
+        #need to collapse down any starting exons that end at the same position (alternative start sites)
         elif len(single_gene) > 1:
             exon_starts = []
             exon_ends = []
+            #iterates through the first exons from all the isoforms
             for single in single_gene:
                 exon_starts.append(single[0])
                 exon_ends.append(single[1])
+            #reduces the exon ends using set
+            #this does not retain the order of the list
             set_exon_ends = list(set(exon_ends))
+            #if the set exon ends == 1, this means all of the start exons are the same with alternative start sites
             if len(set_exon_ends) == 1:
                 #want to pull the start position with that is the farthest upstream of gene for this
+                #examines a single exon pair to determine direction
                 #if gene is on + strand, single[0] < single[1]
                 if int(single[0]) < int(single[1]):
                     final_start = min(exon_starts)
@@ -1855,13 +1865,28 @@ def filter_first_exon():
                     final_start = max(exon_starts)
                 final_first_exon_full = [final_start, set_exon_ends[0]]
                 filtered_first_exons.update({gene:final_first_exon_full})
+            #if the set exon ends == len(exon_ends), no start exons are alternative start sites (i.e. no duplicates in end position of starting exon)
+            #add all exons to filtered exon dictionary
+            elif len(set_exon_ends) == len(exon_ends):
+                for index, value in enumerate(exon_starts):
+                    final_first_exon_full = [value, exon_ends[index]]
+                    if gene in filtered_first_exons:
+                        filtered_first_exons[gene].append(final_first_exon_full)
+                    elif gene not in filtered_first_exons:
+                        filtered_first_exons.update({gene:[final_first_exon_full]})
+            #if the set exon ends > 1 and != len(exon_ends), this means there are duplicate end sites present, but there are also unique end sites
+            #will need to sort through these values more carefully to condense the duplicate values, but keep the unique ones
             else:
                 #pulls all indeces that represent a duplicate value
                 duplicates_index = [i for i, x in enumerate(exon_ends) if exon_ends.count(x) > 1]
                 possible_exon_starts = []
+                #print(exon_starts)
+                #print(exon_ends)
                 for index, value in enumerate(exon_ends):
+                    #if ends value is in duplicates index, add the starting value to a new list
                     if index in duplicates_index:
                         possible_exon_starts.append(exon_starts[index])
+                    #if the ends value is not in the duplicates list, can just add start, end combo to filtered exon dictionary
                     else:
                         final_first_exon_full = [exon_starts[index], value]
                         if gene in filtered_first_exons:
@@ -1882,8 +1907,28 @@ def filter_first_exon():
                     elif gene not in filtered_first_exons:
                         filtered_first_exons.update({gene:[final_first_exon_full]})
                 elif len(duplicates_value) > 1:
-                    print("Need to readdress function filter_first_last_exon for\nDid not code for scenario where multiple different first exons need to be collapsed independently of each other")
+                    for val in duplicates_value:
+                        single_dup_index_list = [b for b in range(len(exon_ends)) if exon_ends[b] == val]
+                        single_dup_starts_list = []
+                        single_dup_ends_list = []
+                        for ind in single_dup_index_list:
+                            single_dup_starts_list.append(exon_starts[ind])
+                            single_dup_ends_list.append(exon_ends[ind])
+                        #if start is < than end, this means the gene is on the + strand
+                        if single_dup_starts_list[0] < single_dup_ends_list[0]:
+                            final_start = min(single_dup_starts_list)
+                            final_first_exon_full = [final_start, single_dup_ends_list[0]]
+                        #if start is > than end, this means the gene is on the - strand
+                        elif single_dup_starts_list[0] > single_dup_ends_list[0]:
+                            final_start = max(single_dup_starts_list)
+                            final_first_exon_full = [final_start, single_dup_ends_list[0]]
+                        if gene in filtered_first_exons:
+                            filtered_first_exons[gene].append(final_first_exon_full)
+                        elif gene not in filtered_first_exons:
+                            filtered_first_exons.update({gene:[final_first_exon_full]})
     return filtered_first_exons
+
+filter_first_exon()
 
 
 def filter_last_exon():
@@ -1903,7 +1948,7 @@ def filter_last_exon():
                 exon_starts.append(single[0])
                 exon_ends.append(single[1])
             set_exon_starts = list(set(exon_starts))
-            '''if len(set_exon_starts) == 1:
+            if len(set_exon_starts) == 1:
                 #want to pull the end position with that is the farthest downstream of gene for this
                 #if gene is on + strand, single[0] < single[1]
                 if int(single[0]) < int(single[1]):
@@ -1939,9 +1984,9 @@ def filter_last_exon():
                         filtered_first_exons[gene].append(final_first_exon_full)
                     elif gene not in filtered_first_exons:
                         filtered_first_exons.update({gene:[final_first_exon_full]})
-                else len(duplicates_value) > 1:
+                elif len(duplicates_value) > 1:
                     print("Need to readdress function filter_first_last_exon for\nDid not code for scenario where multiple different first exons need to be collapsed independently of each other")
-    return filtered_first_exons'''
+    return filtered_first_exons
 
 
 
