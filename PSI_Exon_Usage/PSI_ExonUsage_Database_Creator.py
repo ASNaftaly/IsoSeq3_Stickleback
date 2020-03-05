@@ -2038,6 +2038,7 @@ def filter_last_exon():
 
 
 #need to only filter out first and last exon where the rest of the trio is the same
+#for the first exon, only need to pull trios that match the first exon trios; will get the remaining exon trios in the next function (filter_trios_last_exon)
 def filter_trios_first_exon():
     filtered_dict = filter_trios_duplicates()
     filtered_first_exons = filter_first_exon()
@@ -2050,39 +2051,24 @@ def filter_trios_first_exon():
         strand = single_gene[1]
         single_gene_exon_trios = single_gene[2]
         first_exon_test_list = []
-        remaining_exon_trio_list = []
+        #iterate through exon_trios
         for single_trio in single_gene_exon_trios:
+            #convert single_trio to list instead of tuple
             single_trio_list = [list(ele) for ele in single_trio]
-            first_exon = single_trio_list[0]
-            first_exon_start = first_exon[0]
-            first_exon_end = first_exon[1]
-            if len(single_first_exons) == 2 and isinstance(single_first_exons[0], list) == False:
-                if first_exon_end == single_first_exons[1]:
-                    first_exon_test_list.append(single_trio_list)
-            elif isinstance(single_first_exons[0], list) == True:
-                for value in single_first_exons:
-                    if first_exon_end == value[1]:
-                        first_exon_test_list.append(single_trio_list)
-        #reduce first exon
-        if isinstance(single_first_exons[0], list) == False:
-            for exon_trio in first_exon_test_list:
-                first_exon_pair = exon_trio[0]
-                #if first_exon_pair exactly matches the first exon from single_first_exons; add to dictionary
-                #since the single_first_exons contains the most upstream alternative start site, do not have to sort through the rest of the values
-                if first_exon_pair == single_first_exons:
-                    final_exon_trio = exon_trio
-                    final_first_exons.update({gene:final_exon_trio})
-        elif isinstance(single_first_exons[0], list) == True:
-            for exon_pair in single_first_exons:
-                for exon_trio in first_exon_test_list:
-                    first_exon_pair = exon_trio[0]
-                    #if first_exon_pair exactly matches the first exon from single_first_exons; add to dictionary
-                    if first_exon_pair == exon_pair:
-                        final_exon_trio = exon_trio
+            #if there is only 1 exon trio as the first exon trio it will have 3 list values (exon 1, exon 2, exon 3) where each value has a length of 2 (exon start, exon stop)
+            if len(single_first_exons) == 3 and len(single_first_exons[0]) == 2:
+                #if the single_trio is the same as the first exon trio, add this trio to the final_first_exon dictionary
+                if single_trio_list == single_first_exons:
+                    final_first_exons.update({gene:single_trio_list})
+            #if there is more than one first exon trio, loop through the first exon trios
+            else:
+                for exon_trio in single_first_exons:
+                    #if the first exon trio matches the single trio, add this trio to the final_first_exon dictionary
+                    if exon_trio == single_trio_list:
                         if gene in final_first_exons:
-                            final_first_exons[gene].append(final_exon_trio)
+                            final_first_exons[gene].append(single_trio_list)
                         elif gene not in final_first_exons:
-                            final_first_exons.update({gene:[final_exon_trio]})
+                            final_first_exons.update({gene:[single_trio_list]})
     return final_first_exons
 
 
