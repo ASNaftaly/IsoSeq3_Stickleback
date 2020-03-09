@@ -2114,7 +2114,7 @@ def filter_trios_last_exon():
             #if there is only 1 exon trio as the last exon trio it will have 3 list values (exon 1, exon 2, exon 3) where each value has a length of 2 (exon start, exon stop)
             if len(single_last_exons) == 3 and len(single_last_exons[0]) == 2:
                 #if the single_trio is the same as the last exon trio, add this trio to the final_last_exon list
-                if single_trio_list == single_last_exons:
+                if single_trio_list == single_last_exons and single_trio_list not in single_first_exons:
                     final_last_exons_list.append(single_trio_list)
                 #if not, add the trio to the remaining trios list to be sorted later in this function
                 else:
@@ -2123,7 +2123,7 @@ def filter_trios_last_exon():
             else:
                 for exon_trio in single_last_exons:
                     #if the last exon trio matches the single trio, add this trio to the final_last_exon list
-                    if exon_trio == single_trio_list:
+                    if exon_trio == single_trio_list and single_trio_list not in single_first_exons:
                         final_last_exons_list.append(single_trio_list)
                     #if not, add the trio to the remaining trios list to be sorted later in this function
                     else:
@@ -2225,12 +2225,52 @@ def filter_trios_last_exon():
         if gene in final_filtered_combined_dict:
             final_filtered_combined_dict[gene].append(single_first_exons)
             final_filtered_combined_dict[gene].append(final_remaining_exon_trios)
-            final_filtered_combined_dict[gene].append(single_last_exons)
+            final_filtered_combined_dict[gene].append(final_last_exons_list)
         elif gene not in final_filtered_combined_dict:
             final_filtered_combined_dict.update({gene:[strand]})
             final_filtered_combined_dict[gene].append(single_first_exons)
             final_filtered_combined_dict[gene].append(final_remaining_exon_trios)
-            final_filtered_combined_dict[gene].append(single_last_exons)
+            final_filtered_combined_dict[gene].append(final_last_exons_list)
     return final_filtered_combined_dict
 
-filter_trios_last_exon()
+#current dictionary format from filter_trios_last_exon() has the the strand, first exon trio(s), remaining exon trio(s), and the last exon trio(s) as separate lists; need to combine the trios into one single list:
+def reformat_dictionary():
+    final_dict = filter_trios_last_exon()
+    for key in final_dict:
+        print(key)
+        single_trios_list = []
+        single_key = final_dict[key]
+        strand = single_key[0]
+        #print(strand)
+        first_exon_trios = single_key[1]
+        middle_exon_trios = single_key[2]
+        last_exon_trios = single_key[3]
+        #print(last_exon_trios)
+        #combining trio lists into a single list
+        #first add first exon trios to the list
+        #there should only be instances where there is a single first exon trio or where there are multiple exon trios
+        if len(first_exon_trios) == 3 and isinstance(first_exon_trios[0][0], list) == False:
+            single_trios_list.append(first_exon_trios)
+        elif isinstance(first_exon_trios[0][0], list) == True:
+            for f_trio in first_exon_trios:
+                single_trios_list.append(f_trio)
+        #then add middle exon trios
+        #for the middle exon trios, there are 3 possibilites:
+        #there may be no middle exons (for cases with only 4 total exons = 2 exon trios), there may be only 1 middle exon trio, or there may be many middle exon trios
+        #middle exons also have an extra pair of brackets around them for single middle exons
+        if len(middle_exon_trios) > 0:
+            for m_trios in middle_exon_trios:
+                single_trios_list.append(m_trios)
+        #then add last exon trios
+        #should be similar to the first exon trios in format
+        #there should only be instances where there is a single first exon trio or where there are multiple exon trios
+        if len(last_exon_trios) == 3 and isinstance(last_exon_trios[0][0], list) == False:
+            single_trios_list.append(last_exon_trios)
+        elif isinstance(last_exon_trios[0][0], list) == True:
+            for l_trio in last_exon_trios:
+                single_trios_list.append(l_trio)
+        print(single_trios_list)
+        print(len(single_trios_list))
+
+
+reformat_dictionary()
