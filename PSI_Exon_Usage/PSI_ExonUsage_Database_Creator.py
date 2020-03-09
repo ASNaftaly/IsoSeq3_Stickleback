@@ -7,6 +7,7 @@
 
 
 import sys
+import itertools
 
 #read isoseq classification file
 #returns dictionary with key = isoform id and value == [gene_id, transcript_id, isoform_id, chr_num, strand, num_exons]
@@ -82,6 +83,7 @@ def combine_isoseq():
             elif gene_id not in combined_dict:
                 combined_dict.update({gene_id:[dict_value]})
     return combined_dict
+
 
 
 #read ensembl gtf to create a dictionary similar to combine_isoseq
@@ -668,8 +670,8 @@ def combine_ensembl_isoseq():
                                     final_combined_dict.update({key:[single]})
                                     final_combined_dict[key].append(isoform)
             #if the ensembl gene is not in isoseq
-            #else:
-            #    final_combined_dict.update({key:[single_ensembl]})
+            else:
+                final_combined_dict.update({key:[single_ensembl]})
         #if ensembl gene has multiple entries
         else:
             for ens_single in single_ensembl:
@@ -1382,8 +1384,8 @@ def combine_ensembl_isoseq():
                                         #final_combined_dict.update({key:[ens_single]})
                                         final_combined_dict.update({key:[iso]})
                 #if the ensembl gene is not in isoseq
-                #else:
-                #    final_combined_dict.update({key:[single_ensembl]})
+                else:
+                    final_combined_dict.update({key:[single_ensembl]})
     for key2 in isoseq_dict:
         if key2 not in ensembl_dict:
             single_key2 = isoseq_dict[key2]
@@ -1485,16 +1487,25 @@ def reduce_combined_dict():
                                 duplicates_list.append(test_isoform)
         x += 1
     dups_to_remove = []
+    first_exon_end_list = []
     for key in combined_dict:
         single_gene = combined_dict[key]
         if len(single_gene) > 1:
             for val in single_gene:
                 if len(val) == 5 or len(val) == 6:
                     exons_list_num = len(val[len(val)-1])
-                    if val in duplicates_list and exons_list_num in dups_to_remove:
+                    first_exon_end = val[len(val)-1][1][1]
+                    if val in duplicates_list and exons_list_num in dups_to_remove and first_exon_end in first_exon_end_list:
                         continue
+                    elif val in duplicates_list and exons_list_num in dups_to_remove and first_exon_end not in first_exon_end_list:
+                        first_exon_end_list.append(first_exon_end)
+                        if key in final_dictionary:
+                            final_dictionary[key].append(val)
+                        elif key not in final_dictionary:
+                            final_dictionary.update({key:[val]})
                     elif val in duplicates_list and exons_list_num not in dups_to_remove:
                         dups_to_remove.append(exons_list_num)
+                        first_exon_end_list.append(first_exon_end)
                         if key in final_dictionary:
                             final_dictionary[key].append(val)
                         elif key not in final_dictionary:
@@ -1507,10 +1518,17 @@ def reduce_combined_dict():
                 else:
                     for v in val:
                         exons_list_num = len(v[len(v)-1])
-                        if v in duplicates_list and exons_list_num in dups_to_remove:
+                        if v in duplicates_list and exons_list_num in dups_to_remove and first_exon_end in first_exon_end_list:
                             continue
+                        elif val in duplicates_list and exons_list_num in dups_to_remove and first_exon_end not in first_exon_end_list:
+                            first_exon_end_list.append(first_exon_end)
+                            if key in final_dictionary:
+                                final_dictionary[key].append(v)
+                            elif key not in final_dictionary:
+                                final_dictionary.update({key:[v]})
                         elif v in duplicates_list and exons_list_num not in dups_to_remove:
                             dups_to_remove.append(exons_list_num)
+                            first_exon_end_list.append(first_exon_end)
                             if key in final_dictionary:
                                 final_dictionary[key].append(v)
                             elif key not in final_dictionary:
@@ -1535,11 +1553,11 @@ def convert_direction_combined_dict():
             if len(single) == 5:
                 strand = single[3]
                 exons = single[4]
-                single_key_info = single_key[0][0:len(single)-1]
-            elif len(single_key) == 6:
-                strand = single_key[4]
-                exons = single_key[5]
-                single_key_info = single_key[0][0:len(single)-1]
+                single_key_info = single[0:len(single)-1]
+            elif len(single) == 6:
+                strand = single[4]
+                exons = single[5]
+                single_key_info = single[0:len(single)-1]
             #if strand == +, the exons should increase in position
             if strand == "+":
                 new_exons = sorted(exons, key=lambda x: x[0], reverse = False)
@@ -1618,6 +1636,7 @@ def convert_direction_combined_dict():
                         converted_dict.update({key:[final]})
     return converted_dict
 
+
 #need to create exon trios for all transcripts with 3 or more exons
 #create trio data base for all exons
 #returns a dictionary with key = gene_id and value == [chr_num, strand, C1 start, C1 end, A start, A end, C2 start, C2 end]*number of exons-2
@@ -1693,7 +1712,6 @@ def create_trios():
                         trios_dict.update({gene_id:[dict_value]})
                     x += 1
     return trios_dict
-
 
 #need to filter trios dict to remove duplicates of exons (i.e. where two or more transcripts share same exon trio)
 #will also need to address the differences in start and end positions for the first and last exon for transcripts from the same gene
@@ -1842,17 +1860,19 @@ def filter_first_exon():
     filtered_first_exons = {}
     for gene in first_exons:
         single_gene = first_exons[gene]
+        single_gene.sort()
+        single_gene_filtered = list(single_gene for single_gene,_ in itertools.groupby(single_gene))
         #if there is only 1 isoform for a gene, there will be only 1 first exon
         #then the exon start/end can immediately be added to the final dictionary
-        if len(single_gene) == 1:
-            single = single_gene[0]
+        if len(single_gene_filtered) == 1:
+            single = single_gene_filtered[0]
             filtered_first_exons.update({gene:single})
         #if there is more than 1 isoform for a gene, there will be many exons that count as the start exon
         #need to collapse down any starting exons that end at the same position (alternative start sites), but only if the rest of the trio matches
-        elif len(single_gene) > 1:
+        elif len(single_gene_filtered) > 1:
             #need to pull out all exon positions except first to figure out if these are the same
             non_first_exon_start = []
-            for single in single_gene:
+            for single in single_gene_filtered:
                 non_start_pos = single[1:len(single)]
                 first_exon_end_pos = single[0][1]
                 non_start_pos.insert(0, [first_exon_end_pos])
@@ -1862,8 +1882,8 @@ def filter_first_exon():
             #creates list of unique values (collapses duplicates)
             set_tuple_non_first_exon_start = set(tuple_non_first_exon_start)
             #if the length of the single gene value and the set of the tuple non first exon start list, this means that the exon trios are different for all of the first trios, so all should be kept
-            if len(single_gene) == len(set_tuple_non_first_exon_start):
-                for exon_trio in single_gene:
+            if len(single_gene_filtered) == len(set_tuple_non_first_exon_start):
+                for exon_trio in single_gene_filtered:
                     if gene in filtered_first_exons:
                         filtered_first_exons[gene].append(exon_trio)
                     elif gene not in filtered_first_exons:
@@ -1873,7 +1893,7 @@ def filter_first_exon():
                 exon_starts = []
                 exon_ends = []
                 #iterates through the first exons from all the isoforms
-                for s in single_gene:
+                for s in single_gene_filtered:
                     exon_starts.append(s[0][0])
                     exon_ends.append(s[0][1])
                 #want to pull the start position with that is the farthest upstream of gene for this
@@ -1894,7 +1914,7 @@ def filter_first_exon():
                 exon_starts = []
                 exon_ends = []
                 #iterates through the first exons from all the isoforms
-                for v in single_gene:
+                for v in single_gene_filtered:
                     exon_starts.append(v[0][0])
                     exon_ends.append(v[0][1])
                 possible_exon_starts = []
@@ -1905,17 +1925,17 @@ def filter_first_exon():
                     #if the starting value is not in the duplicates list, can just add start, end combo to filtered exon dictionary
                     else:
                         final_first_exon_full = [value, exon_ends[index]]
-                        final_exon_trio = [final_first_exon_full, single_gene[index][1], single_gene[index][2]]
+                        final_exon_trio = [final_first_exon_full, single_gene_filtered[index][1], single_gene_filtered[index][2]]
                         if gene in filtered_first_exons:
                             filtered_first_exons[gene].append(final_exon_trio)
                         elif gene not in filtered_first_exons:
                             filtered_first_exons.update({gene:[final_exon_trio]})
                 #provides exon end values that were duplicated
-                duplicates_value = list(set([exon_ends[a] for a in duplicates_index]))
+                duplicates_value = list(set([tuple_non_first_exon_start[a] for a in duplicates_index]))
                 #loops through duplicates values
                 for val in duplicates_value:
                     #provides the index of duplicate values in the exon ends; this is mainly for when there is more than one value that was duplicated
-                    single_dup_index_list = [b for b in range(len(exon_ends)) if exon_ends[b] == val and b in duplicates_index]
+                    single_dup_index_list = [b for b in range(len(tuple_non_first_exon_start)) if tuple_non_first_exon_start[b] == val and b in duplicates_index]
                     single_dup_starts_list = []
                     single_dup_ends_list = []
                     for ind in single_dup_index_list:
@@ -1929,7 +1949,7 @@ def filter_first_exon():
                     elif single_dup_starts_list[0] > single_dup_ends_list[0]:
                         final_start = max(single_dup_starts_list)
                         final_first_exon_full = [final_start, single_dup_ends_list[0]]
-                    final_exon_trio = [final_first_exon_full, single_gene[ind][1], single_gene[ind][2]]
+                    final_exon_trio = [final_first_exon_full, single_gene_filtered[ind][1], single_gene_filtered[ind][2]]
                     if gene in filtered_first_exons:
                         filtered_first_exons[gene].append(final_exon_trio)
                     elif gene not in filtered_first_exons:
@@ -1942,17 +1962,19 @@ def filter_last_exon():
     filtered_last_exons = {}
     for gene in last_exons:
         single_gene = last_exons[gene]
+        single_gene.sort()
+        single_gene_filtered = list(single_gene for single_gene,_ in itertools.groupby(single_gene))
         #if there is only 1 isoform for a gene, there will be only 1 last exon
         #then the exon start/end can immediately be added to the final dictionary
-        if len(single_gene) == 1:
-            single = single_gene[0]
+        if len(single_gene_filtered) == 1:
+            single = single_gene_filtered[0]
             filtered_last_exons.update({gene:single})
         #if there is more than 1 isoform for a gene, there will be many exons that count as the last exon
         #need to collapse down any ending exons that start at the same position (alternative end sites), but only if the rest of the trio matches
-        elif len(single_gene) > 1:
+        elif len(single_gene_filtered) > 1:
             #need to pull out all exon positions except last to figure out if these are the same
             non_last_exon_end = []
-            for single in single_gene:
+            for single in single_gene_filtered:
                 non_last_pos = single[0:len(single)-1]
                 last_exon_start_pos = single[2][0]
                 non_last_pos.insert(len(non_last_pos), [last_exon_start_pos])
@@ -1962,8 +1984,8 @@ def filter_last_exon():
             #creates list of unique values (collapses duplicates)
             set_tuple_non_last_exon_end = set(tuple_non_last_exon_end)
             #if the length of the single gene value and the set of the tuple non last exon end list, this means that the exon trios are different for all of the last trios, so all should be kept
-            if len(single_gene) == len(set_tuple_non_last_exon_end):
-                for exon_trio in single_gene:
+            if len(single_gene_filtered) == len(set_tuple_non_last_exon_end):
+                for exon_trio in single_gene_filtered:
                     if gene in filtered_last_exons:
                         filtered_last_exons[gene].append(exon_trio)
                     elif gene not in filtered_last_exons:
@@ -1973,20 +1995,20 @@ def filter_last_exon():
                 exon_starts = []
                 exon_ends = []
                 #iterates through the first exons from all the isoforms
-                for s in single_gene:
+                for s in single_gene_filtered:
                     exon_starts.append(s[2][0])
                     exon_ends.append(s[2][1])
                 #want to pull the last position with that is the farthest downstream of gene for this
                 #examines a single exon pair to determine direction
-                #if gene is on + strand, single[0][0] > single[0][1]
-                if int(s[2][0]) > int(s[2][1]):
+                #if gene is on + strand, single[2][0] < single[2][1]
+                if int(s[2][0]) < int(s[2][1]):
                     final_end = max(exon_ends)
-                #if gene is on - strand, single[0][0] < single[0][1]
-                elif int(single[2][0]) < int(single[2][1]):
+                #if gene is on - strand, single[2][0] > single[2][1]
+                elif int(single[2][0]) > int(single[2][1]):
                     final_end = min(exon_ends)
                 final_last_exon_full = [exon_starts[0], final_end]
                 final_exon_trio = [s[0], s[1], final_last_exon_full]
-                filtered_first_exons.update({gene:final_exon_trio})
+                filtered_last_exons.update({gene:final_exon_trio})
             #if the length of the set_tuple doesn't equal 1 or the length of the single gene, this means some of the trios should be condensed and other should be kept
             else:
                 #pulls all indeces that represent a duplicate value from the list of values with [[first exon end pos], [second exon start, second exon end pos], [third exon start, third exon end pos]]
@@ -1994,7 +2016,7 @@ def filter_last_exon():
                 exon_starts = []
                 exon_ends = []
                 #iterates through the first exons from all the isoforms
-                for v in single_gene:
+                for v in single_gene_filtered:
                     exon_starts.append(v[2][0])
                     exon_ends.append(v[2][1])
                 possible_exon_ends = []
@@ -2005,17 +2027,17 @@ def filter_last_exon():
                     #if the starting value is not in the duplicates list, can just add start, end combo to filtered exon dictionary
                     else:
                         final_last_exon_full = [exon_starts[index], value]
-                        final_exon_trio = [single_gene[index][0], single_gene[index][1], final_last_exon_full]
+                        final_exon_trio = [single_gene_filtered[index][0], single_gene_filtered[index][1], final_last_exon_full]
                         if gene in filtered_last_exons:
                             filtered_last_exons[gene].append(final_exon_trio)
                         elif gene not in filtered_last_exons:
                             filtered_last_exons.update({gene:[final_exon_trio]})
                 #provides exon start values that were duplicated
-                duplicates_value = list(set([exon_starts[a] for a in duplicates_index]))
+                duplicates_value = list(set([tuple_non_last_exon_end[a] for a in duplicates_index]))
                 #loops through duplicates values
                 for val in duplicates_value:
                     #provides the index of duplicate values in the exon starts; this is mainly for when there is more than one value that was duplicated
-                    single_dup_index_list = [b for b in range(len(exon_starts)) if exon_starts[b] == val and b in duplicates_index]
+                    single_dup_index_list = [b for b in range(len(tuple_non_last_exon_end)) if tuple_non_last_exon_end[b] == val and b in duplicates_index]
                     single_dup_starts_list = []
                     single_dup_ends_list = []
                     for ind in single_dup_index_list:
@@ -2029,7 +2051,7 @@ def filter_last_exon():
                     elif single_dup_starts_list[0] > single_dup_ends_list[0]:
                         final_end = min(single_dup_ends_list)
                         final_last_exon_full = [single_dup_starts_list[0], final_end]
-                    final_exon_trio = [single_gene[ind][0], single_gene[ind][1], final_last_exon_full]
+                    final_exon_trio = [single_gene_filtered[ind][0], single_gene_filtered[ind][1], final_last_exon_full]
                     if gene in filtered_last_exons:
                         filtered_last_exons[gene].append(final_exon_trio)
                     elif gene not in filtered_last_exons:
@@ -2050,7 +2072,6 @@ def filter_trios_first_exon():
         chr_num = single_gene[0]
         strand = single_gene[1]
         single_gene_exon_trios = single_gene[2]
-        first_exon_test_list = []
         #iterate through exon_trios
         for single_trio in single_gene_exon_trios:
             #convert single_trio to list instead of tuple
@@ -2071,81 +2092,145 @@ def filter_trios_first_exon():
                             final_first_exons.update({gene:[single_trio_list]})
     return final_first_exons
 
-
+#Now filter last exon trio and get the remaining exon trios saved as well as chromosome number and strand
 def filter_trios_last_exon():
     filtered_dict = filter_trios_duplicates()
-    filtered_first_exons = filter_trios_first_exon()
+    final_first_exons = filter_trios_first_exon()
     filtered_last_exons = filter_last_exon()
+    final_filtered_combined_dict = {}
     for gene in filtered_dict:
         single_gene = filtered_dict[gene]
-        final_first_exons = filtered_first_exons[gene]
+        single_first_exons = final_first_exons[gene]
         single_last_exons = filtered_last_exons[gene]
         chr_num = single_gene[0]
         strand = single_gene[1]
         single_gene_exon_trios = single_gene[2]
-        last_exon_test_list = []
-        remaining_exon_trio_list = []
+        final_last_exons_list = []
+        remaining_trios_list = []
+        #iterate through exon_trios
         for single_trio in single_gene_exon_trios:
+            #convert single_trio to list instead of tuple
             single_trio_list = [list(ele) for ele in single_trio]
-            last_exon = single_trio_list[2]
-            last_exon_start = last_exon[0]
-            last_exon_end = last_exon[1]
-            if len(single_last_exons) == 2 and isinstance(single_last_exons[0], list) == False:
-                if last_exon_start == single_last_exons[0]:
-                    last_exon_test_list.append(single_trio_list)
+            #if there is only 1 exon trio as the last exon trio it will have 3 list values (exon 1, exon 2, exon 3) where each value has a length of 2 (exon start, exon stop)
+            if len(single_last_exons) == 3 and len(single_last_exons[0]) == 2:
+                #if the single_trio is the same as the last exon trio, add this trio to the final_last_exon list
+                if single_trio_list == single_last_exons:
+                    final_last_exons_list.append(single_trio_list)
+                #if not, add the trio to the remaining trios list to be sorted later in this function
                 else:
-                    remaining_exon_trio_list.append(single_trio_list)
-            elif isinstance(single_last_exons[0], list) == True:
-                for value in single_last_exons:
-                    if last_exon_start == value[0]:
-                        last_exon_test_list.append(single_trio_list)
+                    remaining_trios_list.append(single_trio_list)
+            #if there is more than one last exon trio, loop through the first exon trios
+            else:
+                for exon_trio in single_last_exons:
+                    #if the last exon trio matches the single trio, add this trio to the final_last_exon list
+                    if exon_trio == single_trio_list:
+                        final_last_exons_list.append(single_trio_list)
+                    #if not, add the trio to the remaining trios list to be sorted later in this function
                     else:
-                        remaining_exon_trio_list.append(single_trio_list)
-        #removing exon trios from remaining exon trio list if in final_first_exon list and last_exon_test_list
-        if len(final_first_exons[0]) == 2:
-            if final_first_exons in remaining_exon_trio_list:
-                remaining_exon_trio_list.remove(final_first_exons)
-        elif len(final_first_exons[0]) != 2:
-            for trio in final_first_exons:
-                if trio in remaining_exon_trio_list:
-                    remaining_exon_trio_list.remove(trio)
-        for trio_2 in last_exon_test_list:
-            if trio_2 in remaining_exon_trio_list:
-                remaining_exon_trio_list.remove(trio_2)
-        tuple_remaining_exon_trios = []
-        for val in remaining_exon_trio_list:
+                        remaining_trios_list.append(single_trio_list)
+        #need to set remaining trios list, so first need to convert this list of lists to list of tuples, then set the list to remove duplicates, then convert back to a list of lists
+        tuple_remaining_trios = []
+        set_remaining_trios_list = []
+        for val in remaining_trios_list:
             tuple_val = [tuple(t) for t in val]
-            tuple_remaining_exon_trios.append(tuple_val)
-        final_tuple_remaining_exons = [tuple(x) for x in tuple_remaining_exon_trios]
+            tuple_remaining_trios.append(tuple_val)
+        final_tuple_remaining_exons = [tuple(x) for x in tuple_remaining_trios]
         set_remaining_exon_trios = list(set(final_tuple_remaining_exons))
-        #convert remaining exon trios tuples to list of lists
-        final_remaining_exons_list = []
-        for tup in set_remaining_exon_trios:
-            single_list = [list(g) for g in tup]
-            final_remaining_exons_list.append(single_list)
-        #reduce last exon
-        final_last_exons = []
-        if isinstance(single_last_exons[0], list) == False:
-            for exon_trio in last_exon_test_list:
-                last_exon_pair = exon_trio[2]
-                #if last_exon_pair exactly matches the last exon from single_last_exons; add to dictionary
-                #since the single_first_exons contains the most upstream alternative start site, do not have to sort through the rest of the values
-                if last_exon_pair == single_last_exons:
-                    final_last_exons= exon_trio
-        elif isinstance(single_last_exons[0], list) == True:
-            for exon_pair in single_last_exons:
-                for exon_trio in last_exon_test_list:
-                    last_exon_pair = exon_trio[2]
-                    #if last_exon_pair exactly matches the last exon from single_first_exons; add to dictionary
-                    if last_exon_pair == exon_pair:
-                        final_exon_trio = exon_trio
-                        final_last_exons.append(final_exon_trio)
-        print(gene)
-        print(chr_num)
-        print(strand)
-        print(len(final_first_exons))
-        print(len(final_last_exons))
-        print(len(final_remaining_exons_list))
+        for v in set_remaining_exon_trios:
+            list_v = [list(a) for a in v]
+            set_remaining_trios_list.append(list_v)
+        excluded_first_trios_to_remove = []
+        excluded_last_trios_to_remove = []
+        #removes first exon trios from the remaining trios list and adds excluded first exons to excluded trios to remove list
+        if len(single_first_exons) == 3 and len(single_first_exons[0]) == 2:
+            if single_first_exons in set_remaining_trios_list:
+                set_remaining_trios_list.remove(single_first_exons)
+            non_start_pos = [[single_first_exons[0][1]], single_first_exons[1], single_first_exons[2]]
+            for trio in set_remaining_trios_list:
+                non_start_pos_trio = [[trio[0][1]], trio[1], trio[2]]
+                if non_start_pos == non_start_pos_trio:
+                    excluded_first_trios_to_remove.append(trio)
+        elif (len(single_first_exons) == 3 and len(single_first_exons[0]) != 2) or len(single_first_exons) != 3:
+            for first_exon_trio in single_first_exons:
+                set_remaining_trios_list.remove(first_exon_trio)
+                non_start_pos = [[first_exon_trio[0][1]], first_exon_trio[1], first_exon_trio[2]]
+                for trio_2 in set_remaining_trios_list:
+                    non_start_pos_trio = [[trio_2[0][1]], trio_2[1], trio_2[2]]
+                    if non_start_pos == non_start_pos_trio:
+                        excluded_first_trios_to_remove.append(trio_2)
+        #removes last exon trios from remaining trios list if they were added
+        for last_exon_trio in final_last_exons_list:
+            if last_exon_trio in set_remaining_trios_list:
+                set_remaining_trios_list.remove(last_exon_trio)
+            non_end_pos = [last_exon_trio[0], last_exon_trio[1], [last_exon_trio[2][0]]]
+            for trio_3 in set_remaining_trios_list:
+                non_end_pos_trio = [trio_3[0], trio_3[1], [trio_3[2][0]]]
+                if non_end_pos == non_end_pos_trio:
+                    excluded_last_trios_to_remove.append(trio_3)
+        excluded_trios_to_remove = excluded_first_trios_to_remove + excluded_last_trios_to_remove
+        #this creates a new list that collects the trios that should be kept by excluding the exons specified to be removed because they match the first or last exon trio
+        #removing excluded trios
+        for final_trio in excluded_trios_to_remove:
+            if final_trio in set_remaining_trios_list:
+                set_remaining_trios_list.remove(final_trio)
+        exon_trios_to_addback_from_excluded = []
+        #it is possible that the 5 positions in first exon trio or last exon trio are the same for other exon trios except for one position even though these exon trios are not the first or last exon trio (will happen if there is more than one isoform that uses almost the same exons)
+        #need to add these trios back to the remaining list
+        #examines trios that match the first exon trio
+        for first_trios in excluded_first_trios_to_remove:
+            if (len(single_first_exons) == 3 and len(single_first_exons[0]) != 2) or len(single_first_exons) != 3:
+                if first_trios not in single_first_exons:
+                    first_exon = first_trios[0]
+                    for all_trios in set_remaining_trios_list:
+                        middle_exon_trios = all_trios[1]
+                        last_exon_trios = all_trios[2]
+                        if first_exon == middle_exon_trios:
+                            exon_trios_to_addback_from_excluded.append(first_trios)
+                        elif first_exon == last_exon_trios:
+                            exon_trios_to_addback_from_excluded.append(first_trios)
+                    for f_trios in single_first_exons:
+                        middle_exon_trios = f_trios[1]
+                        last_exon_trios = f_trios[2]
+                        if first_exon == middle_exon_trios:
+                            exon_trios_to_addback_from_excluded.append(first_trios)
+                        elif first_exon == last_exon_trios:
+                            exon_trios_to_addback_from_excluded.append(first_trios)
+        #examines the trios that match the last exon trio
+        for trios in excluded_last_trios_to_remove:
+            first_exon = trios[0]
+            middle_exon = trios[1]
+            last_exon = trios[2]
+            for last_trio in set_remaining_trios_list:
+                last_first_exon = last_trio[0]
+                last_middle_exon = last_trio[1]
+                last_last_exon = last_trio[2]
+                if last_exon == last_middle_exon:
+                    exon_trios_to_addback_from_excluded.append(trios)
+                elif last_exon == last_first_exon and last_exon[0] != last_middle_exon[0]:
+                    exon_trios_to_addback_from_excluded.append(trios)
+            for l_trio in final_last_exons_list:
+                last_first_exon = l_trio[0]
+                last_middle_exon = l_trio[1]
+                last_last_exon = l_trio[2]
+                if last_exon == last_middle_exon:
+                    exon_trios_to_addback_from_excluded.append(trios)
+                elif last_exon == last_first_exon and last_exon[0] != last_middle_exon[0]:
+                    exon_trios_to_addback_from_excluded.append(trios)
+        #this sorts the trios to addback in numerical order mainly to be able to remove any trio duplicates
+        #returns a list with each trio only appearing once
+        exon_trios_to_addback_from_excluded.sort()
+        final_exon_trios_to_addback = list(exon_trios_to_addback_from_excluded for exon_trios_to_addback_from_excluded,_ in itertools.groupby(exon_trios_to_addback_from_excluded))
+        final_remaining_exon_trios = set_remaining_trios_list + final_exon_trios_to_addback
+        #creats final dictionary to be returned from this function
+        if gene in final_filtered_combined_dict:
+            final_filtered_combined_dict[gene].append(single_first_exons)
+            final_filtered_combined_dict[gene].append(final_remaining_exon_trios)
+            final_filtered_combined_dict[gene].append(single_last_exons)
+        elif gene not in final_filtered_combined_dict:
+            final_filtered_combined_dict.update({gene:[strand]})
+            final_filtered_combined_dict[gene].append(single_first_exons)
+            final_filtered_combined_dict[gene].append(final_remaining_exon_trios)
+            final_filtered_combined_dict[gene].append(single_last_exons)
+    return final_filtered_combined_dict
 
-
-#filter_trios_last_exon()
+filter_trios_last_exon()
