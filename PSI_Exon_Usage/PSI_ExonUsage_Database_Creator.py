@@ -1,8 +1,15 @@
 #Creating sequence junction database to examine exon usage following methods of Razeto-Barry, Diaz, & Vasquez 2012 and Barbosa-Morais et al 2012
 #This script works by separating each gene/transcript into exon trios where the first and third exon are the constituitive exons and the 2nd exon is the cassette exon (may be spliced out)
 #   this means all single or 2 exon isoforms will be excluded, the first and last exon will not be examined for potential loss or differences
-#1. Make dictionary of exon trios for both isoseq isoforms and all annotated genes from ensembl; will create separate functions so I can differentiate between only isoseq, only ensembl, and the two combined
-#to run script: python3 PSI_ExonUsage_Database_Creator.py <isoseq classification file> <isoseq gtf file> <ensembl gtf file>
+#Had to collapse isoforms between isoseq and ensembl data sets; if the isoforms were identical except for the first exon start position and/or the last exon end position; the isoseq isoform was kept
+#Then had to create trios and filter these trios as follows:
+#   removed duplicate values
+#   collapsed first exons to the total number of unique trios (where if first exon start was different among 2 or more trios that were otherwise the same; the first exon start position that was the farthest upstream was kept)
+#   collapsed last exons as with first exons except kept the last exon end position that was the farthest downstream
+#The final file will have gene \t strand \t exon 1 start position \t exon 1 end position \t exon 2 start position \t exon 2 end position \t exon 3 start position \t exon 3 end position
+#will have to pull the sequences from these regions using the nucleotide sequences in another script
+#to run script: python3 PSI_ExonUsage_Database_Creator.py <isoseq classification file> <isoseq gtf file> <ensembl gtf file> <output file>
+#Author: Alice Naftaly, March 2020
 
 
 
@@ -670,8 +677,8 @@ def combine_ensembl_isoseq():
                                     final_combined_dict.update({key:[single]})
                                     final_combined_dict[key].append(isoform)
             #if the ensembl gene is not in isoseq
-            #else:
-            #    final_combined_dict.update({key:[single_ensembl]})
+            else:
+                final_combined_dict.update({key:[single_ensembl]})
         #if ensembl gene has multiple entries
         else:
             for ens_single in single_ensembl:
@@ -1384,8 +1391,8 @@ def combine_ensembl_isoseq():
                                         #final_combined_dict.update({key:[ens_single]})
                                         final_combined_dict.update({key:[iso]})
                 #if the ensembl gene is not in isoseq
-                #else:
-                #    final_combined_dict.update({key:[single_ensembl]})
+                else:
+                    final_combined_dict.update({key:[single_ensembl]})
     for key2 in isoseq_dict:
         if key2 not in ensembl_dict:
             single_key2 = isoseq_dict[key2]
@@ -1636,7 +1643,6 @@ def convert_direction_combined_dict():
                         converted_dict.update({key:[final]})
     return converted_dict
 
-
 #need to create exon trios for all transcripts with 3 or more exons
 #create trio data base for all exons
 #returns a dictionary with key = gene_id and value == [chr_num, strand, C1 start, C1 end, A start, A end, C2 start, C2 end]*number of exons-2
@@ -1773,42 +1779,16 @@ def pull_first_last_exon():
                     first_exon_dict.update({gene:[exons]})
                 last_exon_dict.update({gene:[[]]})
             else:
-                #exon positions should increase
-                if strand == "+":
-                    #if exon pair at position 0 is the first exon, it should be less than the last exon start position
-                    if int(exon_pair_0[0]) < int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_0
-                        last_exon_trio = exon_trio_last
-                    #if exon pair at position 0 is greater than the exon pair at the last position, then the exon pair at position 0 is the last exon
-                    elif int(exon_pair_0[0]) > int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_last
-                        last_exon_trio = exon_trio_0
-                    if gene in first_exon_dict:
-                        first_exon_dict[gene].append(first_exon_trio)
-                    elif gene not in first_exon_dict:
-                        first_exon_dict.update({gene:[first_exon_trio]})
-                    if gene in last_exon_dict:
-                        last_exon_dict[gene].append(last_exon_trio)
-                    elif gene not in last_exon_dict:
-                        last_exon_dict.update({gene:[last_exon_trio]})
-                #exon positions should decrease
-                elif strand == "-":
-                    #if exon pair at position 0 is the first exon, it should be greater than the last exon start position
-                    if int(exon_pair_0[0]) > int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_0
-                        last_exon_trio = exon_trio_last
-                    #if exon pair at position 0 is less than the exon pair at the last position, then the exon pair at position 0 is the last exon
-                    elif int(exon_pair_0[0]) < int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_last
-                        last_exon_trio = exon_trio_0
-                    if gene in first_exon_dict:
-                        first_exon_dict[gene].append(first_exon_trio)
-                    elif gene not in first_exon_dict:
-                        first_exon_dict.update({gene:[first_exon_trio]})
-                    if gene in last_exon_dict:
-                        last_exon_dict[gene].append(last_exon_trio)
-                    elif gene not in last_exon_dict:
-                        last_exon_dict.update({gene:[last_exon_trio]})
+                first_exon_trio = exon_trio_0
+                last_exon_trio = exon_trio_last
+                if gene in first_exon_dict:
+                    first_exon_dict[gene].append(first_exon_trio)
+                elif gene not in first_exon_dict:
+                    first_exon_dict.update({gene:[first_exon_trio]})
+                if gene in last_exon_dict:
+                    last_exon_dict[gene].append(last_exon_trio)
+                elif gene not in last_exon_dict:
+                    last_exon_dict.update({gene:[last_exon_trio]})
         else:
             for s in single_gene:
                 if len(s) == 5:
@@ -1820,42 +1800,16 @@ def pull_first_last_exon():
                 exon_trio_last = exons[len(exons)-3:len(exons)]
                 exon_pair_0 = exons[0]
                 exon_pair_last = exons[len(exons)-1]
-                #exon positions should increase
-                if strand == "+":
-                    #if exon pair at position 0 is the first exon, it should be less than the last exon start position
-                    if int(exon_pair_0[0]) < int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_0
-                        last_exon_trio = exon_trio_last
-                    #if exon pair at position 0 is greater than the exon pair at the last position, then the exon pair at position 0 is the last exon
-                    elif int(exon_pair_0[0]) > int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_last
-                        last_exon_trio = exon_trio_0
-                    if gene in first_exon_dict:
-                        first_exon_dict[gene].append(first_exon_trio)
-                    elif gene not in first_exon_dict:
-                        first_exon_dict.update({gene:[first_exon_trio]})
-                    if gene in last_exon_dict:
-                        last_exon_dict[gene].append(last_exon_trio)
-                    elif gene not in last_exon_dict:
-                        last_exon_dict.update({gene:[last_exon_trio]})
-                #exon positions should decrease
-                elif strand == "-":
-                    #if exon pair at position 0 is the first exon, it should be greater than the last exon start position
-                    if int(exon_pair_0[0]) > int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_0
-                        last_exon_trio = exon_trio_last
-                    #if exon pair at position 0 is less than the exon pair at the last position, then the exon pair at position 0 is the last exon
-                    elif int(exon_pair_0[0]) < int(exon_pair_last[0]):
-                        first_exon_trio = exon_trio_last
-                        last_exon_trio = exon_trio_0
-                    if gene in first_exon_dict:
-                        first_exon_dict[gene].append(first_exon_trio)
-                    elif gene not in first_exon_dict:
-                        first_exon_dict.update({gene:[first_exon_trio]})
-                    if gene in last_exon_dict:
-                        last_exon_dict[gene].append(last_exon_trio)
-                    elif gene not in last_exon_dict:
-                        last_exon_dict.update({gene:[last_exon_trio]})
+                first_exon_trio = exon_trio_0
+                last_exon_trio = exon_trio_last
+                if gene in first_exon_dict:
+                    first_exon_dict[gene].append(first_exon_trio)
+                elif gene not in first_exon_dict:
+                    first_exon_dict.update({gene:[first_exon_trio]})
+                if gene in last_exon_dict:
+                    last_exon_dict[gene].append(last_exon_trio)
+                elif gene not in last_exon_dict:
+                    last_exon_dict.update({gene:[last_exon_trio]})
     return first_exon_dict, last_exon_dict
 
 #need to filter first and last exons before filtering trios
@@ -1960,7 +1914,6 @@ def filter_first_exon():
                     elif gene not in filtered_first_exons:
                         filtered_first_exons.update({gene:[final_exon_trio]})
     return filtered_first_exons
-
 
 def filter_last_exon():
     first_exons, last_exons = pull_first_last_exon()
@@ -2097,6 +2050,7 @@ def filter_trios_first_exon():
                             final_first_exons.update({gene:[single_trio_list]})
     return final_first_exons
 
+
 #Now filter last exon trio and get the remaining exon trios saved as well as chromosome number and strand
 def filter_trios_last_exon():
     filtered_dict = filter_trios_duplicates()
@@ -2121,7 +2075,6 @@ def filter_trios_last_exon():
             if len(single_last_exons) == 3 and len(single_last_exons[0]) == 2:
                 #if the single_trio is the same as the last exon trio, add this trio to the final_last_exon list
                 if single_trio_list == single_last_exons and single_trio_list not in single_first_exons:
-                    print(single_trio_list)
                     final_last_exons_list.append(single_trio_list)
                 #if not, add the trio to the remaining trios list to be sorted later in this function
                 else:
@@ -2227,10 +2180,16 @@ def filter_trios_last_exon():
         #returns a list with each trio only appearing once
         exon_trios_to_addback_from_excluded.sort()
         final_exon_trios_to_addback = list(exon_trios_to_addback_from_excluded for exon_trios_to_addback_from_excluded,_ in itertools.groupby(exon_trios_to_addback_from_excluded))
-        single_first_exons.sort()
-        final_single_first_exons = list(single_first_exons for single_first_exons,_ in itertools.groupby(single_first_exons))
-        final_last_exons_list.sort()
-        final_single_last_exons = list(final_last_exons_list for final_last_exons_list,_ in itertools.groupby(final_last_exons_list))
+        if isinstance(single_first_exons[0][0], list) == True:
+            single_first_exons.sort()
+            final_single_first_exons = list(single_first_exons for single_first_exons,_ in itertools.groupby(single_first_exons))
+        elif isinstance(single_first_exons[0][0], list) == False:
+            final_single_first_exons = single_first_exons
+        if len(final_last_exons_list) > 0 and isinstance(final_last_exons_list[0][0], list) == True:
+            final_last_exons_list.sort()
+            final_single_last_exons = list(final_last_exons_list for final_last_exons_list,_ in itertools.groupby(final_last_exons_list))
+        elif len(final_last_exons_list) == 0 or isinstance(final_last_exons_list[0][0], list) == False:
+            final_single_last_exons = final_last_exons_list
         final_remaining_exon_trios = set_remaining_trios_list + final_exon_trios_to_addback
         #creats final dictionary to be returned from this function
         if gene in final_filtered_combined_dict:
@@ -2247,17 +2206,14 @@ def filter_trios_last_exon():
 #current dictionary format from filter_trios_last_exon() has the the strand, first exon trio(s), remaining exon trio(s), and the last exon trio(s) as separate lists; need to combine the trios into one single list:
 def reformat_dictionary():
     final_dict = filter_trios_last_exon()
+    reformatted_dict = {}
     for key in final_dict:
-        print(key)
         single_trios_list = []
         single_key = final_dict[key]
         strand = single_key[0]
-        #print(strand)
         first_exon_trios = single_key[1]
         middle_exon_trios = single_key[2]
         last_exon_trios = single_key[3]
-        #print(first_exon_trios)
-        #print(last_exon_trios)
         #combining trio lists into a single list
         #first add first exon trios to the list
         #there should only be instances where there is a single first exon trio or where there are multiple exon trios
@@ -2281,8 +2237,26 @@ def reformat_dictionary():
         elif len(last_exon_trios) > 0 and isinstance(last_exon_trios[0][0], list) == True:
             for l_trio in last_exon_trios:
                 single_trios_list.append(l_trio)
-        print(single_trios_list)
-        print(len(single_trios_list))
+        final_value = [strand, single_trios_list]
+        reformatted_dict.update({key:final_value})
+    return reformatted_dict
 
-
-reformat_dictionary()
+#writing final file
+#format = Gene \t Strand \t Exon 1 start Exon 1 end \t Exon 2 start \t Exon 2 end \t Exon 3 start \t Exon 3 end \n
+#need each exon trio to be on a separate line
+def write_output():
+    final_dictionary = reformat_dictionary()
+    output = sys.argv[4]
+    with open(output, 'a') as out:
+        header = "Gene\tStrand\tExon.1.Start\tExon.1.End\tExon.2.Start\tExon.2.End\tExon.3.Start\tExon.3.End\n"
+        out.write(header)
+        for gene in final_dictionary:
+            single_gene = final_dictionary[gene]
+            strand = single_gene[0]
+            exon_trios = single_gene[1]
+            for trios in exon_trios:
+                split_trios = [str(item) for sublist in trios for item in sublist]
+                formatted_trios = "\t".join(split_trios)
+                final_value = "%s\t%s\t%s\n" % (str(gene), str(strand), formatted_trios)
+                out.write(final_value)
+write_output()
