@@ -12,9 +12,7 @@ def pull_isoform_ids():
     isoforms = []
     with open(class_file, 'r') as class_input:
         for line in class_input:
-            if line.startswith("isoform"):
-                continue
-            else:
+            if line.startswith("PB"):
                 new_line = line.split()
                 isoforms.append(new_line[0])
     return isoforms
