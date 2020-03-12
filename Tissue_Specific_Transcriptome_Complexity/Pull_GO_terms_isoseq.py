@@ -6,7 +6,6 @@
 #to run script: Pull_GO_terms_isoseq.py <Gene id file> <ensembl table (csv or xlsx) with go terms associated with genes> <output file>
 #Author: Alice Naftaly, March 2020
 
-
 import sys
 
 #reading gene ids from file
