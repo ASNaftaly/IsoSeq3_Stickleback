@@ -3,6 +3,7 @@
 #will use exon counts file for input for single tissues to remove any converted isoform ids that don't match up correctly (Gene_Isoform_Counts.py does this)
 #to run script: python3 Compare_single_tissues.py <single tissue exon counts file female liver> <single tissue exon file male liver> <single tissue exon file female brain> <single tissue exon file male brain> <single tissue exon file female pronephros> <single tissue exon file male pronephros> <single tissue exon file ovary> <single tissue classification file testis>
 #have 8 single tissue files for this analysis
+#Author: Alice Naftaly, March 2020
 
 import sys
 
@@ -139,44 +140,59 @@ def compare():
     mp_iso = set(read_male_pronephros_file())
     o_iso = set(read_ovary_file())
     t_iso = set(read_testis_file())
+    #shared betwen all tissues
     print("set intersection for all tissues/sexes")
     shared_between_all_samples = fl_iso.intersection(ml_iso, fb_iso, mb_iso, fp_iso, mp_iso, o_iso, t_iso)
     print(len(shared_between_all_samples))
+    #shared between all somatic tissues
+    print("set intersection for all somatic tissues")
+    shared_between_all_somatic_tissues = fl_iso.intersection(ml_iso, fb_iso, mb_iso, fp_iso, mp_iso)
+    print(len(shared_between_all_somatic_tissues))
+    #shared between all female tissues
+    print("set intersection for all female tissues")
+    shared_between_all_female_tissues = fl_iso.intersection(fb_iso, fp_iso, o_iso)
+    print(len(shared_between_all_female_tissues))
+    #shared between all male tissues
+    print("set intersection for all male tissues")
+    shared_between_all_male_tissues = ml_iso.intersection(mb_iso, mp_iso, t_iso)
+    print(len(shared_between_all_male_tissues))
+    #shared between liver samples
     print("set intersections for liver samples")
     shared_liver = fl_iso.intersection(ml_iso)
     print(len(shared_liver))
+    #shared between brain samples
     print("set intersections for brain samples")
     shared_brain = fb_iso.intersection(mb_iso)
     print(len(shared_brain))
+    #shared between pronephros samples
     print("set intersections for pronephros samples")
     shared_pronephros = fp_iso.intersection(mp_iso)
     print(len(shared_pronephros))
+    #shared between gonad samples
     print("set intersections for gonads samples")
     shared_gonad = o_iso.intersection(t_iso)
     print(len(shared_gonad))
-    '''print("set intersection for all tissues excpet gonads")
-    shared_somatic_tissues = fl_iso.intersection(ml_iso, fb_iso, mb_iso, fp_iso, mp_iso)
-    print(len(shared_somatic_tissues))
-    print("set intersectionf for each sex")
-    female_shared_tissues = fl_iso.intersection(fb_iso, fp_iso, o_iso)
-    print(len(female_shared_tissues))
-    male_shared_tissues = ml_iso.intersection(mb_iso, mp_iso, t_iso)
-    print(len(male_shared_tissues))'''
+    #shared between liver and brain samples
     print("set intersection for liver and brain")
     shared_liver_brain = fl_iso.intersection(ml_iso, fb_iso, mb_iso)
     print(len(shared_liver_brain))
+    #shared between liver and pronephros samples
     print("set intersection for liver and pronephros")
     shared_liver_pronephros = fl_iso.intersection(ml_iso, fp_iso, mp_iso)
     print(len(shared_liver_pronephros))
+    #shared between liver and gonad samples
     print("set intersection for liver and gonads")
     shared_liver_gonads = fl_iso.intersection(ml_iso, o_iso, t_iso)
     print(len(shared_liver_gonads))
+    #shared between brain and pronephros samples
     print("set intersection for brain and Pronephros")
     shared_brain_pronephros = fb_iso.intersection(mb_iso, fp_iso, mp_iso)
     print(len(shared_brain_pronephros))
+    #shared between brain and gonad samples
     print("set intersection for brain and gonads")
     shared_brain_gonads = fb_iso.intersection(mb_iso, o_iso, t_iso)
     print(len(shared_brain_gonads))
+    #shared between pronephros and gonad samples
     print("set intersection for pronephros and gonads")
     shared_pronephros_gonads = fp_iso.intersection(mp_iso, o_iso, t_iso)
     print(len(shared_pronephros_gonads))
@@ -185,7 +201,7 @@ def compare():
 
 #call all functions
 def call():
-    #isoforms_counts = total_isoform_counts()
+    isoforms_counts = total_isoform_counts()
     compare_function = compare()
 
 call()

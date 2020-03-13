@@ -1,7 +1,7 @@
 #creating new classification file that has an added column with the combined Sexes isoform id
 #need to read in original filtered classification file and then add a column before the other columns for the combined sexes isoform ID
 #will need to read in tab delimited file with isoforms from combined sexes and single tissue analysis
-#to run script: python3 Convert_Classificatoin_File.py <isoform comparison file from Sort_best_matches_BLAST.py> <individual sexes classification file> <output, new classification file with 1 extra column at beginning> <output, excluded isoforms from single tissue analysis>
+#to run script: python3 Convert_Classification_File.py <isoform comparison file from Sort_best_matches_BLAST.py> <individual sexes classification file> <output, new classification file with 1 extra column at beginning> <output, excluded isoforms from single tissue analysis>
 #Author: Alice Naftaly, February 2020
 
 import sys
