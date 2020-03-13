@@ -1,6 +1,6 @@
 #Need to examine how many genes are shared between tissues from single tissue analysis
 #will use isoform counts file for input for joined tissues to remove any converted isoform ids that don't match up correctly (Gene_Isoform_Counts.py does this)
-#to run script: python3 Compare_joined_tissues_genes.py <isoform counts file all female tissues> <isoform counts file all male tissues> <isoform counts file no gonads females> <isoform counts file no gonads males> <output shared all samples genes> <output shared no gonads samples genes> 
+#to run script: python3 Compare_joined_tissues_genes.py <isoform counts file all female tissues> <isoform counts file all male tissues> <isoform counts file no gonads females> <isoform counts file no gonads males> <output shared all samples genes> <output shared no gonads samples genes>
 #Author: Alice Naftaly, March 2020
 
 import sys
@@ -65,10 +65,10 @@ def compare_tissues():
     fng_final_genes = set(read_nogonads_female_file())
     mng_final_genes = set(read_nogonads_male_file())
     print("set intersection between the sexes")
-    shared_between_all_samples = af_iso.intersection(am_iso, fng_iso, mng_iso)
+    shared_between_all_samples = af_genes.intersection(am_genes, fng_genes, mng_genes)
     print(len(shared_between_all_samples))
     print("set intersections for all somatic tissues")
-    shared_no_gonads = af_iso.intersection(am_iso)
+    shared_no_gonads = af_genes.intersection(am_genes)
     print(len(shared_no_gonads))
     return shared_between_all_samples, shared_no_gonads
 
