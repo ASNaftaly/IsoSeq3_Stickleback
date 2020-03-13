@@ -4,6 +4,7 @@
 #2. repeat 10,000 times and write summary file for each iteration (bash script)
 #will compare this distribution to go terms from shared gene subsets
 #to run script: python3 Randomize_GO_terms_isoseq.py <ensembl table as csv> <shared genes file> <number of genes to randomize; integer> <output file> <iteration number>
+#Author: Alice Naftaly, March 2020
 
 import sys
 import random
