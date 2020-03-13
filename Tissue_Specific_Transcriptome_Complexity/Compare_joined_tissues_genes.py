@@ -64,11 +64,11 @@ def compare_tissues():
     am_final_genes = set(read_all_male_file())
     fng_final_genes = set(read_nogonads_female_file())
     mng_final_genes = set(read_nogonads_male_file())
-    print("set intersection between the sexes")
-    shared_between_all_samples = af_genes.intersection(am_genes, fng_genes, mng_genes)
+    print("set intersection between the sexes for genes")
+    shared_between_all_samples = af_final_genes.intersection(am_final_genes, fng_final_genes, mng_final_genes)
     print(len(shared_between_all_samples))
-    print("set intersections for all somatic tissues")
-    shared_no_gonads = af_genes.intersection(am_genes)
+    print("set intersections for all somatic tissues for genes")
+    shared_no_gonads = fng_final_genes.intersection(mng_final_genes)
     print(len(shared_no_gonads))
     return shared_between_all_samples, shared_no_gonads
 
