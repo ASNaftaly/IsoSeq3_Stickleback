@@ -157,7 +157,7 @@ def compare_tissues():
     print(len(shared_all_female))
     print("set intersection for all male samples")
     shared_all_male = ml_genes. intersection(mb_genes, mp_genes, t_genes)
-    print(lne(shared_all_male))
+    print(len(shared_all_male))
     print("set intersections for liver samples")
     shared_liver = fl_genes.intersection(ml_genes)
     print(len(shared_liver))
