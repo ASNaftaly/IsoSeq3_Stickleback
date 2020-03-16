@@ -3,29 +3,23 @@
 #will pull all go terms from each isoform in file, if no go terms are available, will skip that gene
 #final file should have the final format:
 #Gene \t list of GO terms separated by ,
-#to run script: Pull_GO_terms_novel_genes.py <converted classification file> <combined sexes classification file> <all tissues novel genes go terms file from interproscan and BLAST2GO> <output file; format = Gene.ID\tGo.Terms>
+#to run script: Pull_GO_terms_novel_genes.py <shared gene ids file> <combined sexes classification file> <all tissues novel genes go terms file from interproscan and BLAST2GO> <output file; format = Gene.ID\tGo.Terms>
 #Author: Alice Naftaly, March 2020
 
 import sys
 
 #reads in isoform ids and gene ids from file
 #will only keep novel gene; reads from classification file with convertd isoform ids
-#returns isoform ids in a list
-def read_isoform_ids_converted():
-    class_file = sys.argv[1]
-    all_gene_ids = []
-    isoform_list = []
-    with open(class_file, 'r') as class_info:
-        for line in class_info:
-            if line.startswith("PB"):
-                new_line = line.split()
-                #converted isoform id
-                isoform_id = new_line[0]
-                #gene_id
-                gene_id = new_line[7]
-                if gene_id.startswith("novel"):
-                    isoform_list.append(isoform_id)
-    return isoform_list
+#returns genes in a list
+def read_shared_genes():
+    shared_file = sys.argv[1]
+    gene_list = []
+    with open(shared_file, 'r') as shared_info:
+        for line in shared_info:
+            if line.startswith("novel"):
+                gene_list.append(line.strip("\n"))
+    return gene_list
+
 
 #read combined sexes classification file to get appropriate gene ids
 #returns gene dict where key = isoform id and value == gene id
@@ -39,19 +33,19 @@ def pull_combined_sexes_genes():
                 isoform_id = new_line[0]
                 gene_id = new_line[6]
                 if gene_id.startswith("novel"):
-                    gene_dict.update({isoform_id:gene_id})
+                    gene_dict.update({gene_id:isoform_id})
     return gene_dict
 
 #combine gene ids and isoform ids
 #returns dictionary with key == isoform id and value == gene id
 def combine():
-    isoform_ids = read_isoform_ids_converted()
-    combined_genes = pull_combined_sexes_genes()
+    genes  = read_shared_genes()
+    genes_isoforms = pull_combined_sexes_genes()
     combined_dict = {}
-    for isoform in isoform_ids:
-        if isoform in combined_genes:
-            single_gene = combined_genes[isoform]
-            combined_dict.update({isoform:single_gene})
+    for gene in genes:
+        if gene in genes_isoforms:
+            single_isoform = genes_isoforms[gene]
+            combined_dict.update({single_isoform:gene})
     return combined_dict
 
 #read GO terms for novel genes
