@@ -1,7 +1,7 @@
 #Need to examine how many genes are shared between tissues from single tissue analysis
 #currently have the the single tissue analyses blasted to combined sexes analysis to have the same form ID
 #will use isoform counts file for input for single tissues to remove any converted isoform ids that don't match up correctly (Gene_Isoform_Counts.py does this)
-#to run script: python3 Compare_single_tissues_genes.py <female liver isoform file> <male liver isoform file> <female brain isoform file> <male brain isoform file> <female pronephros isoform file> <male pronephros isoform file> <ovary isoform file> <testis isoform file> <output shared all samples genes> <output shared liver samples genes> <output shared brain samples genes> <output shared pronephros samples genes> <output shared gonad samples genes> <output shared liver & brain genes> <output shared liver & pronephros genes> <output shared liver & gonad genes> <output shared brain & pronephros genes> <output shared brain & gonad genes> <output shared pronephros & gonad genes>
+#to run script: python3 Compare_single_tissues_genes.py <female liver isoform file> <male liver isoform file> <female brain isoform file> <male brain isoform file> <female pronephros isoform file> <male pronephros isoform file> <ovary isoform file> <testis isoform file> <output shared all samples genes> <output shared all somatic samples> <output shared all female samples> <output shared all male samples> <output shared liver samples genes> <output shared brain samples genes> <output shared pronephros samples genes> <output shared gonad samples genes> <output shared liver & brain genes> <output shared liver & pronephros genes> <output shared liver & gonad genes> <output shared brain & pronephros genes> <output shared brain & gonad genes> <output shared pronephros & gonad genes>
 #Author: Alice Naftaly, March 2020
 
 import sys
@@ -149,6 +149,15 @@ def compare_tissues():
     print("set intersection for all tissues/sexes")
     shared_between_all_samples = fl_genes.intersection(ml_genes, fb_genes, mb_genes, fp_genes, mp_genes, o_genes, t_genes)
     print(len(shared_between_all_samples))
+    print("set intersection for all somatic samples")
+    shared_all_somatic_samples = fl_genes.intersection(ml_genes, fb_genes, mb_genes, fp_genes, mp_genes)
+    print(len(shared_all_somatic_samples))
+    print("set intersectionf for all female samples")
+    shared_all_female = fl_genes.intersection(fb_genes, fp_genes, o_genes)
+    print(len(shared_all_female))
+    print("set intersection for all male samples")
+    shared_all_male = ml_genes. intersection(mb_genes, mp_genes, t_genes)
+    print(lne(shared_all_male))
     print("set intersections for liver samples")
     shared_liver = fl_genes.intersection(ml_genes)
     print(len(shared_liver))
@@ -179,93 +188,116 @@ def compare_tissues():
     print("set intersection for pronephros and gonads")
     shared_pronephros_gonads = fp_genes.intersection(mp_genes, o_genes, t_genes)
     print(len(shared_pronephros_gonads))
-    return shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads
+    return shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads
 
 #write genes to files for each category
-
 def write_shared_all_samples():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
     output = sys.argv[9]
     with open(output, 'a') as out:
         for gene in shared_between_all_samples:
             final = "%s\n" % str(gene)
             out.write(final)
 
-def write_shared_liver_samples():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+def write_shared_all_somatic():
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
     output = sys.argv[10]
+    with open(output, 'a') as out:
+        for gene in shared_all_somatic_samples:
+            final = "%s\n" % str(gene)
+            out.write(final)
+
+def write_shared_all_female():
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[11]
+    with open(output, 'a') as out:
+        for gene in shared_all_female:
+            final = "%s\n" % str(gene)
+            out.write(final)
+
+def write_shared_all_male():
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[12]
+    with open(output, 'a') as out:
+        for gene in shared_all_male:
+            final = "%s\n" % str(gene)
+            out.write(final)
+
+def write_shared_liver_samples():
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[13]
     with open(output, 'a') as out:
         for gene in shared_liver:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_brain_samples():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[11]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[14]
     with open(output, 'a') as out:
         for gene in shared_brain:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_pronephros_samples():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[12]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[15]
     with open(output, 'a') as out:
         for gene in shared_pronephros:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_gonad_samples():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[13]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[16]
     with open(output, 'a') as out:
         for gene in shared_gonad:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_liver_brain():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[14]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[17]
     with open(output, 'a') as out:
         for gene in shared_liver_brain:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_liver_pronephros():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[15]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[18]
     with open(output, 'a') as out:
         for gene in shared_liver_pronephros:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_liver_gonads():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[16]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[19]
     with open(output, 'a') as out:
         for gene in shared_liver_gonads:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_brain_pronephros():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[17]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[20]
     with open(output, 'a') as out:
         for gene in shared_brain_pronephros:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_brain_gonads():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[18]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[21]
     with open(output, 'a') as out:
         for gene in shared_brain_gonads:
             final = "%s\n" % str(gene)
             out.write(final)
 
 def write_shared_pronephros_gonads():
-    shared_between_all_samples, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
-    output = sys.argv[19]
+    shared_between_all_samples, shared_all_somatic_samples, shared_all_female, shared_all_male, shared_liver, shared_brain, shared_pronephros, shared_gonad, shared_liver_brain, shared_liver_pronephros, shared_liver_gonads, shared_brain_pronephros, shared_brain_gonads, shared_pronephros_gonads = compare_tissues()
+    output = sys.argv[22]
     with open(output, 'a') as out:
         for gene in shared_pronephros_gonads:
             final = "%s\n" % str(gene)
@@ -274,6 +306,9 @@ def write_shared_pronephros_gonads():
 #call all functions
 def call():
     shared_all_samples = write_shared_all_samples()
+    shared_all_somatic = write_shared_all_somatic()
+    shared_all_female = write_shared_all_female()
+    shared_all_male = write_shared_all_male()
     shared_liver = write_shared_liver_samples()
     shared_brain = write_shared_brain_samples()
     shared_pronephros = write_shared_pronephros_samples()
