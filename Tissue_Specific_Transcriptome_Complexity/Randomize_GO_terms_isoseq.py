@@ -3,38 +3,25 @@
 #1. randomly pull specific number of genes from all genes list and pull those GO terms (only choose genes that have annotated GO terms)
 #2. repeat 10,000 times and write summary file for each iteration (bash script)
 #will compare this distribution to go terms from shared gene subsets
-#to run script: python3 Randomize_GO_terms_isoseq.py <ensembl table as csv> <shared genes file> <number of genes to randomize; integer> <output file> <iteration number>
+#to run script: python3 Randomize_GO_terms_isoseq.py <all genes and GO terms file from Combined_Ensembl_Novel_GO_terms.py> <shared genes file> <number of genes to randomize; integer> <output file> <iteration number>
 #Author: Alice Naftaly, March 2020
 
 import sys
 import random
 
-#first pull genes and go terms from ensembl table
-#only need gene id and go terms
-#returns dictionary with key = gene id and value == list of go terms
-def read_ensembl_table():
-    ensembl_table_file = sys.argv[1]
+#read GO terms from combined and novel GO terms file
+#returns dictionary with key == gene and value == list of go terms
+def read_GO_terms():
+    all_go_terms = sys.argv[1]
     go_term_dict = {}
-    final_go_terms = {}
-    with open(ensembl_table_file, 'r') as ensembl_table:
-        for line in ensembl_table:
-            new_line = line.split(",")
-            gene_id = new_line[0]
-            go_term = new_line[len(new_line)-1].strip("\n")
-            if gene_id in go_term_dict:
-                go_term_dict[gene_id].append(go_term)
-            elif gene_id not in go_term_dict:
-                go_term_dict.update({gene_id:[go_term]})
-    #remove genes with no go terms or empty go term values
-    for key in go_term_dict:
-        single_key = go_term_dict[key]
-        list_of_go_terms = []
-        for value in single_key:
-            if value.startswith("GO:"):
-                list_of_go_terms.append(value)
-        if len(list_of_go_terms) > 0:
-            final_go_terms.update({key:list_of_go_terms})
-    return final_go_terms
+    with open(all_go_terms, 'r') as go_terms:
+        for line in go_terms:
+            new_line = line.split("\t")
+            gene = new_line[0]
+            stripped_terms = new_line[1].strip("\n")
+            list_of_go_terms = stripped_terms.split(",")
+            go_term_dict.update({gene:list_of_go_terms})
+    return go_term_dict
 
 
 #pull genes from shared tissue genes
@@ -45,13 +32,12 @@ def pull_shared_genes():
     gene_list = []
     with open(shared_gene_file, 'r') as genes:
         for line in genes:
-            if line.startswith("ENSGACG"):
-                gene_list.append(line.strip())
+            gene_list.append(line.strip())
     return gene_list
 
 #removing shared genes from all genes list
 def remove_genes():
-    all_genes = read_ensembl_table()
+    all_genes = read_GO_terms()
     shared_genes = pull_shared_genes()
     for gene in shared_genes:
         if gene in all_genes.keys():
