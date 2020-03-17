@@ -78,7 +78,7 @@ def calc_P():
                 if single_count <= int(single_observed):
                     single_overenriched += 1
             #over-enriched p value
-            p_overenriched = round(1 - (single_overenriched/10000),5)
+            p_overenriched = round(1 - (single_overenriched/10000),8)
             p_values_dict.update({go_term:p_overenriched})
     return p_values_dict
 
