@@ -4,6 +4,7 @@
 #Then the next columns will be: Female Liver, Male Liver, Female Brain, Male Brain, Female Pronephros, Male Pronephros, Ovary, Gonad, Joined All Female tissues, Joined All Male Tissues, Joined No gonads Female Tissues, Joined No gonads Male Tissues
 #each of these will have a 0 or 1 in the file depending on if that gene is in the set (present = 1, absent = 0)
 #to run script: python3 UpSetR_datacreator.py <combined sexes classification file no dups> <isoform counts file female liver> <isoform counts male liver> <isoform counts female brain> <isoform counts male brain> <isoform counts female pronephros> <isoform counts male pronephros> <isoform counts ovary> <isoform counts testis> <isoform counts joined all female tissues> <isoform counts joined all male tissues> <isoform counts joined no gonads female tissues> <isoform counts joined no gonads male tissues>
+#Author: Alice Naftaly, March 2020
 
 
 import sys
