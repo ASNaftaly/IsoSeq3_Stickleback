@@ -1,6 +1,6 @@
 #need to pull GO term names from significant GO terms
 #will use significant go terms file for input and csv with all ensembl go terms (If one of the novel GO terms isn't in this list, will pull manually)
-#to run script: python3 GOTerm_Names.py <sig go terms file> <csv with ensembl go terms> <output file; format = GO.Term\tGO.name
+#to run script: python3 GOTerm_Names.py <sig go terms file> <tab delimited file with ensembl go terms> <output file; format = GO.Term\tGO.name>
 #author: Alice Naftaly, March 2020
 
 import sys
