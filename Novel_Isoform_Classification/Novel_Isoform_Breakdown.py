@@ -1,7 +1,7 @@
 #pull novel genes and isoforms for Novel isoforms portion of isoseq paper
 #will read in combined sexes classification file without duplicates
-#to run script: python3 Novel_Isoform_Breakdown.py <combined sexes classification file>
-#
+#to run script: python3 Novel_Isoform_Breakdown.py <combined sexes classification file> >> log output file
+#Author: Alice Naftaly, March 2020
 
 import sys
 
