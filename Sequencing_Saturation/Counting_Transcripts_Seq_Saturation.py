@@ -1,6 +1,6 @@
 #Counting the number of transcripts covered by CCS reads to test for sequencing saturation
 #will read in blast output (format 9), fasta file from downsampled bam file for each sample, clasification file with transcripts for each sample
-#to run script: python3 Counting_Transcripts_Seq_Saturation.py <classification file for sample> <fasta file from downsampled bam file> <blast output> <output file, format = Isoform.ID \t Number.of.CCS.Reads>
+#to run script:
 #Author: Alice Naftaly, April 2020
 
 import sys
@@ -111,7 +111,6 @@ def compare_length_isoform():
     blast_dict = compare_length_ccs_read()
     isoform_dict = read_class()
     final_isoforms = {}
-    total_counts = 0
     for ccs_identifier in blast_dict:
         single_blast = blast_dict[ccs_identifier]
         if len(single_blast) == 1:
@@ -124,7 +123,6 @@ def compare_length_isoform():
                 #50% of isoform length
                 isoform_50per = int(round(isoform_length * 0.50,0))
                 if alignment_length >= isoform_50per:
-                    total_counts += 1
                     if isoform_id in final_isoforms:
                         final_isoforms[isoform_id].append("1")
                     elif isoform_id not in final_isoforms:
@@ -135,16 +133,14 @@ def compare_length_isoform():
                 alignment_length = int(single[1])
                 if isoform_id in isoform_dict:
                     single_isoform = isoform_dict[isoform_id]
+                    isoform_length =int(single_isoform[1])
                     #50% of isoform length
                     isoform_50per = int(round(isoform_length * 0.50, 0))
                     if alignment_length >= isoform_50per:
-                        total_counts += 1
                         if isoform_id in final_isoforms:
                             final_isoforms[isoform_id].append("1")
                         elif isoform_id not in final_isoforms:
                             final_isoforms.update({isoform_id:["1"]})
-    print("Number of isoforms that pass isoform alignment filter")
-    print(total_counts)
     return final_isoforms
 
 
