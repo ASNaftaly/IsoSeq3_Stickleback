@@ -5,4 +5,4 @@
 #used isoseq version 3.0
 
 
-ccs <subreads.xml file> --noPolish --minPasses 1 --numthreads 24 <output.ccs.bam>
+ccs <subreads.xml file> --noPolish --minPasses 1 --numthreads <# of threads to use> <output.ccs.bam>
