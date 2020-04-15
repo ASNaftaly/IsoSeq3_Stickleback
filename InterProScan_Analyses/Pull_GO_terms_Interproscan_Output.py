@@ -1,9 +1,8 @@
 #pull GO terms from interproscan to analyze in revigo and other GO term analyses
 #want to get number of isoforms that do not have GO terms, no protein match, and ones with GO terms
 #1. read BLAST2GO table (created from loading interproscan results into BLAST2GO and then exporting table)
-
-
-#to run script: python3 Pull_GO_terms_Interproscan_Output.py
+#to run script: python3 Pull_GO_terms_Interproscan_Output.py <BLAST2GO table> <output no matches to InterProscan> <output no GO terms> <output GO terms>
+#Author: Alice Naftaly, March 2020
 
 import sys
 
