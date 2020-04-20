@@ -87,3 +87,37 @@ def write_stats():
                     out.write(final)
 
 write_stats()
+
+#write file for R
+def write_stats_R():
+    domain_dict = read_tsv()
+    output = sys.argv[3]
+    with open(output, 'a') as out:
+        for program in domain_dict:
+            single_program = domain_dict[program]
+            header = "Program\tIsoform.ID\tIdentifier\tInterProScan.Accession\tScore\n"
+            out.write(header)
+            for entry in single_program:
+                if len(entry) == 8:
+                    isoform_id = entry[0]
+                    sig_identifier = entry[3]
+                    sig_description = entry[4]
+                    score = entry[7]
+                    final = "%s\t%s\t%s\t%s\t%s\n" % (str(program), str(isoform_id), str(sig_identifier), ".",str(score))
+                    out.write(final)
+                elif len(entry) == 12:
+                    isoform_id = entry[0]
+                    sig_identifier = entry[3]
+                    sig_description = entry[4]
+                    score = entry[7]
+                    interproscan_accession = entry[8]
+                    interproscan_description = entry[9]
+                    go_terms = entry[10]
+                    if go_terms.startswith("GO"):
+                        continue
+                    else:
+                        go_terms = "."
+                    final = "%s\t%s\t%s\t%s\t%s\n" % (str(program), str(isoform_id), str(sig_identifier), str(interproscan_accession),str(score))
+                    out.write(final)
+
+write_stats_R()
