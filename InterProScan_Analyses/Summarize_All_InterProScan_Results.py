@@ -2,7 +2,7 @@
 #basically will be trying to recreate IPRStats output as this program will not work for me
 #will use tsv output from interproscan as input
 #will separate out results based on program (analysis column 3 in tsv), will write one output with each of the program results then a log file with the programs detected and the number of values from each program
-#to run script: python Summarize_All_InterProScan_Results.py <tsv from interproscan> <output> >> <log file>
+#to run script: python Summarize_All_InterProScan_Results.py <tsv from interproscan> <output 1> <output 2 for R> >> <log file>
 #Author: Alice Naftaly, April 2020
 
 import sys
@@ -57,12 +57,12 @@ def write_stats():
     domain_dict = read_tsv()
     output = sys.argv[2]
     with open(output, 'a') as out:
+        header = "Program\tIsoform.ID\tIdentifier\tDescription\tInterProScan.Accession\tInterProScan.Description\tGO.Term\tScore\n"
+        out.write(header)
         for program in domain_dict:
             single_program = domain_dict[program]
             program_header = "Number of predictions from %s database: %d" % (str(program), len(single_program))
             print(program_header)
-            header = "Program\tIsoform.ID\tIdentifier\tDescription\tInterProScan.Accession\tInterProScan.Description\tGO.Term\tScore\n"
-            out.write(header)
             for entry in single_program:
                 if len(entry) == 8:
                     isoform_id = entry[0]
@@ -93,10 +93,10 @@ def write_stats_R():
     domain_dict = read_tsv()
     output = sys.argv[3]
     with open(output, 'a') as out:
+        header = "Program\tIsoform.ID\tIdentifier\tInterProScan.Accession\tScore\n"
+        out.write(header)
         for program in domain_dict:
-            single_program = domain_dict[program]
-            header = "Program\tIsoform.ID\tIdentifier\tInterProScan.Accession\tScore\n"
-            out.write(header)
+            single_program = domain_dict[program]    
             for entry in single_program:
                 if len(entry) == 8:
                     isoform_id = entry[0]

@@ -1,7 +1,7 @@
 #Pooling counts from InterProScan databases
 #basically, for each identifier in a database, I want to count up the number of occurrences and write this as a new output file to be read by R for plotting
 #uses 2nd output file from Summarize_All_InterProScan_Results.py
-#to run script: python3 Interproscan_database_counts.py <for R file from Summarize_All_InterProScan_Results.py> <output file>
+#to run script: python3 Interproscan_database_counts.py <for R file from Summarize_All_InterProScan_Results.py> <output file> >> <log file> 
 #Author: Alice Naftaly, April 2020
 
 import sys
@@ -13,13 +13,16 @@ def read_input():
     interproscan_dict = {}
     with open(input_file, 'r') as info:
         for line in info:
-            new_line = line.split("\t")
-            database = new_line[0]
-            identifier = new_line[2]
-            if database in interproscan_dict:
-                interproscan_dict[database].append(identifier)
-            elif database not in interproscan_dict:
-                interproscan_dict.update({database:[identifier]})
+            if line.startswith("Program"):
+                continue
+            else:
+                new_line = line.split("\t")
+                database = new_line[0]
+                identifier = new_line[2]
+                if database in interproscan_dict:
+                    interproscan_dict[database].append(identifier)
+                elif database not in interproscan_dict:
+                    interproscan_dict.update({database:[identifier]})
     return interproscan_dict
 
 
