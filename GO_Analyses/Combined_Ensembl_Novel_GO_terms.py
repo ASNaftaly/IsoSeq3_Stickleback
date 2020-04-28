@@ -1,6 +1,7 @@
 #combined annotated ensembl gene go terms and novel gene GO terms
 #this script will be used by Randomize_GO_terms_isoseq.py to create random distribution
-#to run script: python3 Combined_Ensembl_Novel_GO_terms.py <ensembl table as csv> <novel genes go terms file for combined sexes analysis from Pull_GO_terms_Interproscan_Output.py> <combined sexes classification file> <output file; format: Gene.ID \t List of GO terms
+#will also output just novel isoforms and ensembl genes as separate files (all novel isoforms and all ensembl genes) in the same format as the combined file to run specific analyses
+#to run script: python3 Combined_Ensembl_Novel_GO_terms.py <ensembl table as csv> <novel genes go terms file for combined sexes analysis from Pull_GO_terms_Interproscan_Output.py> <combined sexes classification file> <output file;combined novel and ensembl format: Gene.ID \t List of GO terms> <output file; ensembl genes> <output file; novel isoforms>
 #Author: Alice Naftaly, March 2020, edited April 2020
 
 import sys
@@ -96,7 +97,7 @@ def combine_ensembl_novel_genes():
 
 #write combined dictionary to output file
 #final format should be gene id \t list of go terms as list separated by commas
-def write():
+def write_combined():
     final_dict = combine_ensembl_novel_genes()
     output = sys.argv[4]
     with open(output, 'a') as out:
@@ -105,4 +106,31 @@ def write():
             go_term_list = ",".join(single_gene)
             final = "%s\t%s\n" % (str(gene), go_term_list)
             out.write(final)
-write()
+
+def write_ensembl():
+    final_dict = read_ensembl_table()
+    output = sys.argv[5]
+    with open(output, 'a') as out:
+        for gene in final_dict:
+            single_gene = final_dict[gene]
+            go_term_list = ",".join(single_gene)
+            final = "%s\t%s\n" % (str(gene), go_term_list)
+            out.write(final)
+
+def write_novel():
+    final_dict = combine_novel_genes_GO_terms()
+    output = sys.argv[6]
+    with open(output, 'a') as out:
+        for gene in final_dict:
+            single_gene = final_dict[gene]
+            go_term_list = ",".join(single_gene)
+            final = "%s\t%s\n" % (str(gene), go_term_list)
+            out.write(final)
+
+#call all functions()
+def call():
+    combined = write_combined()
+    ensembl = write_ensembl()
+    novel = write_novel()
+
+call()
