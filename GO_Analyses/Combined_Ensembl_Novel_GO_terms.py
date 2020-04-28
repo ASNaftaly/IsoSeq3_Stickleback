@@ -1,7 +1,7 @@
 #combined annotated ensembl gene go terms and novel gene GO terms
 #this script will be used by Randomize_GO_terms_isoseq.py to create random distribution
-#to run script: python3 Combined_Ensembl_Novel_GO_terms.py <ensembl table as csv> <novel genes go terms file for combined sexes analysis> <combined sexes classification file> <output file; format: Gene.ID \t List of GO terms
-#Author: Alice Naftaly, March 2020
+#to run script: python3 Combined_Ensembl_Novel_GO_terms.py <ensembl table as csv> <novel genes go terms file for combined sexes analysis from Pull_GO_terms_Interproscan_Output.py> <combined sexes classification file> <output file; format: Gene.ID \t List of GO terms
+#Author: Alice Naftaly, March 2020, edited April 2020
 
 import sys
 
@@ -14,13 +14,14 @@ def read_ensembl_table():
     final_go_terms = {}
     with open(ensembl_table_file, 'r') as ensembl_table:
         for line in ensembl_table:
-            new_line = line.split(",")
-            gene_id = new_line[0]
-            go_term = new_line[len(new_line)-1].strip("\n")
-            if gene_id in go_term_dict:
-                go_term_dict[gene_id].append(go_term)
-            elif gene_id not in go_term_dict:
-                go_term_dict.update({gene_id:[go_term]})
+            if line.startswith("ENSGACG"):
+                new_line = line.split(",")
+                gene_id = new_line[0]
+                go_term = new_line[2]
+                if gene_id in go_term_dict:
+                    go_term_dict[gene_id].append(go_term)
+                elif gene_id not in go_term_dict:
+                    go_term_dict.update({gene_id:[go_term]})
     #remove genes with no go terms or empty go term values
     for key in go_term_dict:
         single_key = go_term_dict[key]
@@ -31,6 +32,7 @@ def read_ensembl_table():
         if len(list_of_go_terms) > 0:
             final_go_terms.update({key:list_of_go_terms})
     return final_go_terms
+
 
 #need to add the novel genes detected to the ensembl annotated genes
 #read GO terms for novel genes
@@ -43,7 +45,7 @@ def read_novel_GO_terms():
             if line.startswith("PB"):
                 new_line = line.split()
                 isoform_id = new_line[0]
-                single_go_term = new_line[2]
+                single_go_term = new_line[1]
                 if isoform_id in go_term_dict:
                     go_term_dict[isoform_id].append(single_go_term)
                 elif isoform_id not in go_term_dict:
@@ -61,14 +63,16 @@ def pull_combined_sexes_genes():
                 new_line = line.split()
                 isoform_id = new_line[0]
                 gene_id = new_line[6]
+                transcript_id = new_line[7]
                 if gene_id.startswith("novel"):
+                    gene_dict.update({isoform_id:gene_id})
+                elif gene_id.startswith("ENSGACG") and transcript_id == "novel":
                     gene_dict.update({isoform_id:gene_id})
     return gene_dict
 
 
 #combine genes and GO terms for novel genes
 #returns a dictionary with key = gene id and value == list of go terms
-#note: the number of genes this pulls is relatively low since these are the novel genes; there are GO terms for novel transcripts that match to known ensembl genes, but there are far fewer GO terms for completely novel genes.
 def combine_novel_genes_GO_terms():
     novel_go_terms = read_novel_GO_terms()
     gene_ids = pull_combined_sexes_genes()
