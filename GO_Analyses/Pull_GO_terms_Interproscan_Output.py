@@ -1,51 +1,67 @@
 #pull GO terms from interproscan to analyze in revigo and other GO term analyses
 #want to get number of isoforms that do not have GO terms, no protein match, and ones with GO terms
-#1. read BLAST2GO table (created from loading interproscan results into BLAST2GO and then exporting table)
-#to run script: python3 Pull_GO_terms_Interproscan_Output.py <BLAST2GO table> <output no matches to InterProscan> <output no GO terms> <output GO terms>
-#Author: Alice Naftaly, March 2020
+#reads in tsv output from interproscan
+#to run script: python3 Pull_GO_terms_Interproscan_Output.py <tsv file from interproscan> <output no GO terms> <output GO terms>
+#Author: Alice Naftaly, March 2020, edited April 2020
 
 import sys
 
-#read in table from BLAST2GO
+#read in tsv file from interproscan
 #returns dictionary with key = isoform id and value = go terms
-def read_table():
-    input_file = sys.argv[1]
+def read_interproscan():
+    interproscan_file = sys.argv[1]
     go_term_dict = {}
-    with open(input_file, 'r') as blast2go_table:
-        for line in blast2go_table:
+    final_go_terms = {}
+    with open(interproscan_file, 'r') as interproscan:
+        for line in interproscan:
             new_line = line.split("\t")
-            isoform_id = new_line[2]
-            go_terms = new_line[14]
-            if isoform_id in go_term_dict:
-                go_term_dict[isoform_id].append(go_terms)
-            elif isoform_id not in go_term_dict:
-                go_term_dict.update({isoform_id:[go_terms]})
-    return go_term_dict
-
-#sort out isoforms with no protein matches through interproscan
-#will print summary to stdout
-#also returns list of isoforms with no matches
-def sort_no_matches():
-    go_terms = read_table()
-    no_protein_matches = []
-    for isoform in go_terms:
-        single_isoform = go_terms[isoform]
-        if single_isoform[0] == "no IPS match":
-            no_protein_matches.append(isoform)
-    print("Number of Isoforms with no Interproscan match")
-    print(len(no_protein_matches))
-    return no_protein_matches
+            isoform_id = new_line[0]
+            if len(new_line) == 11:
+                go_terms = "n/a"
+                if isoform_id in go_term_dict:
+                    go_term_dict[isoform_id].append(go_terms)
+                elif isoform_id not in go_term_dict:
+                    go_term_dict.update({isoform_id:[go_terms]})
+            elif len(new_line) == 15:
+                go_values = new_line[13]
+                if go_values.startswith("GO:"):
+                    if len(go_values) == 10:
+                        go_terms = go_values
+                    elif len(go_values) > 10:
+                        go_terms = go_values.split("|")
+                    if isoform_id in go_term_dict:
+                        go_term_dict[isoform_id].append(go_terms)
+                    elif isoform_id not in go_term_dict:
+                        go_term_dict.update({isoform_id:[go_terms]})
+        for key in go_term_dict:
+            single_key = go_term_dict[key]
+            all_go_terms = []
+            for term in single_key:
+                if term == "n/a":
+                    all_go_terms.append(term)
+                elif len(term) == 10 and isinstance(term, list) == False:
+                    all_go_terms.append(term)
+                else:
+                    for single in term:
+                        all_go_terms.append(single)
+            set_go_terms = list(set(all_go_terms))
+            final_go_terms.update({key:set_go_terms})
+    return final_go_terms
 
 
 #sort out isoforms with no go terms
 #will print summary to stdout
 #also returns lsit of isoforms with no go terms
 def sort_no_go_terms():
-    go_terms = read_table()
+    go_terms = read_interproscan()
     no_go_terms = []
     for isoform in go_terms:
         single_isoform = go_terms[isoform]
-        if single_isoform[0] == "no GO terms":
+        term_count = 0
+        for term in single_isoform:
+            if term == "n/a":
+                term_count += 1
+        if term_count == len(single_isoform):
             no_go_terms.append(isoform)
     print("Number of Isoforms with no GO terms")
     print(len(no_go_terms))
@@ -53,26 +69,21 @@ def sort_no_go_terms():
 
 
 #sorts through isoforms with GO terms:
-#returns dictionary with key = isoform and value == [ category (F, C, P)*I think these refer to molecular function (F), cellular component (C), biological process (P), GO term]
+#returns dictionary with key = isoform and value ==
 #there can be multiple go terms per isoform
 def sort_go_terms():
-    go_terms = read_table()
+    go_terms = read_interproscan()
     isoforms_with_go_terms = {}
     go_terms_count = []
     for isoform in go_terms:
         single_isoform = go_terms[isoform]
-        if single_isoform[0] != "no IPS match" and single_isoform[0] != "no GO terms" and single_isoform[0] != "InterPro GO IDs":
-            split_isoform = single_isoform[0].split(";")
-            for value in split_isoform:
-                no_spaces_value = value.strip(" ")
-                split_value = no_spaces_value.split(":")
-                final_go_term = split_value[1] + ":" + split_value[2]
-                go_terms_count.append(final_go_term)
-                final = [split_value[0], final_go_term]
-                if isoform in isoforms_with_go_terms:
-                    isoforms_with_go_terms[isoform].append(final)
-                elif isoform not in isoforms_with_go_terms:
-                    isoforms_with_go_terms.update({isoform:[final]})
+        final_go_terms = []
+        for term in single_isoform:
+            if term.startswith("GO:"):
+                final_go_terms.append(term)
+                go_terms_count.append(term)
+        if len(final_go_terms) > 0:
+            isoforms_with_go_terms.update({isoform:final_go_terms})
     print("Number of isoforms with GO terms")
     print(len(isoforms_with_go_terms))
     print("Number of GO terms identified")
@@ -80,51 +91,38 @@ def sort_go_terms():
     return isoforms_with_go_terms
 
 
-#Writing output for no IPS match, no go terms, and isoforms with go terms
-#no matches output format = 1 column with header (Isoform.ID), one isoform per line
-def write_no_matches():
-    no_matches = sort_no_matches()
-    output = sys.argv[2]
-    with open(output, 'w') as out:
-        header = "Isoform.ID"
-        out.write(header)
-        for value in no_matches:
-            final = "%s\n" % str(value)
-            out.write(final)
-
 #no go terms output format = 1 column with header (Isoform.ID), one isoform per line
 def write_no_GO_terms():
     no_go_terms = sort_no_go_terms()
-    output = sys.argv[3]
-    with open(output, 'w') as out:
+    output = sys.argv[2]
+    with open(output, 'a') as out:
         header = "Isoform.ID"
         out.write(header)
         for value in no_go_terms:
             final = "%s\n" % str(value)
             out.write(final)
 
-#isoforms with go terms output format = 3 columns with header, 1 = Isoform.ID, 2 = Catgeory, 3 = GO term
+#isoforms with go terms output format = 2 columns with header, 1 = Isoform.ID, 3 = GO term
 def write_GO_terms():
     go_terms = sort_go_terms()
-    output = sys.argv[4]
+    output = sys.argv[3]
     with open(output, 'w') as out:
-        header = "Isoform.ID\tCategory\tGO.Term\n"
+        header = "Isoform.ID\tGO.Term\n"
         out.write(header)
         for isoform in go_terms:
             single_isoform = go_terms[isoform]
             if len(single_isoform) == 1:
                 single = single_isoform[0]
-                final = "%s\t%s\t%s\n" % (str(isoform),str(single[0]),str(single[1]))
+                final = "%s\t%s\n" % (str(isoform),str(single))
                 out.write(final)
             elif len(single_isoform) > 1:
-                for value in single_isoform:
-                    final = "%s\t%s\t%s\n" % (str(isoform),str(value[0]),str(value[1]))
-                    out.write(final)
+                all_go_terms = ",".join(single_isoform)
+                final = "%s\t%s\n" % (str(isoform),all_go_terms)
+                out.write(final)
 
 
 #call all functions
 def call():
-    no_matches = write_no_matches()
     no_go_terms = write_no_GO_terms()
     go_terms = write_GO_terms()
 
