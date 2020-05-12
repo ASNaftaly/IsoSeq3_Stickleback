@@ -1,7 +1,7 @@
 #comparing isoforms between all tissue & no gonads tissue analyses analyses
 #will use exon counts file for input for joined tissues to remove any converted isoform ids that don't match up correctly (Gene_Isoform_Counts.py does this)
-#to run script: python3 Compare_joined_tissues.py <exon counts file all female tissues> <exon counts file all male tissues> <exon counts file no gonads females> <exon counts file no gonads males>
-#author: Alice Naftaly, March 2020
+#to run script: python3 Compare_joined_tissues.py <exon counts file all female tissues> <exon counts file all male tissues> <exon counts file no gonads females> <exon counts file no gonads males> <output shared all samples isoforms> <output shared no gonads samples isoforms>
+#author: Alice Naftaly, March 2020, edited May 2020
 
 
 import sys
@@ -52,20 +52,39 @@ def read_nogonads_male_file():
                 male_nogonads_isoforms.append(isoform)
     return male_nogonads_isoforms
 
-def compare():
+def compare_tissues():
     af_iso = set(read_all_female_file())
     am_iso = set(read_all_male_file())
     fng_iso = set(read_nogonads_female_file())
     mng_iso = set(read_nogonads_male_file())
     print("set intersection between the sexes for isoforms")
-    shared_between_all_samples = af_iso.intersection(am_iso, fng_iso, mng_iso)
+    shared_between_all_samples = af_iso.intersection(am_iso)
     print(len(shared_between_all_samples))
     print("set intersections for all somatic tissues for isoforms")
-    shared_no_gonads = af_iso.intersection(am_iso)
+    shared_no_gonads = fng_iso.intersection(mng_iso)
     print(len(shared_no_gonads))
+    return shared_between_all_samples, shared_no_gonads
+
+#write gene ids to output files
+def write_shared_all_samples():
+    shared_between_all_samples, shared_no_gonads = compare_tissues()
+    output = sys.argv[5]
+    with open(output, 'a') as out:
+        for isoform in shared_between_all_samples:
+            final = "%s\n" % str(isoform)
+            out.write(final)
+
+def write_shared_nogonads():
+    shared_between_all_samples, shared_no_gonads = compare_tissues()
+    output = sys.argv[6]
+    with open(output, 'a') as out:
+        for isoform in shared_no_gonads:
+            final = "%s\n" % str(isoform)
+            out.write(final)
 
 #call all functions
 def call():
-    compare_function = compare()
+    shared_all_samples = write_shared_all_samples()
+    shared_nogonads = write_shared_nogonads()
 
 call()
