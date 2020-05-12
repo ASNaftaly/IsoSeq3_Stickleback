@@ -1,6 +1,6 @@
 #classifing where ncRNAs are located (while also taking into account annotated vs novel transcripts)
 #input will be classification file and novel/annotated transcripts (isoform ids)
-#to run script: python3 Locating_ncRNAs.py <noncoding isoforms classification file> <annotated transcripts file from Annotated_vs_Novel_ncRNAS.py> <novel transcripts file from Annotated_vs_Novel_ncRNAS.py> <output breakdown of SQANTI splice type for annotated and novel transcripts>
+#to run script: python3 Locating_ncRNAs.py <noncoding isoforms classification file> <annotated transcripts file from Annotated_vs_Novel_ncRNAS.py> <novel transcripts file from Annotated_vs_Novel_ncRNAS.py> <output breakdown of SQANTI splice type for annotated and novel transcripts> >> <log file>
 #Author: Alice Naftaly, April 2020
 
 import sys
