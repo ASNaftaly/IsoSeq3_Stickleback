@@ -1,10 +1,9 @@
 #sort classification file based on final BLAST comparison
 #read in classification file and exon counts file
 #to run script: python3 Sort_Class_file_by_exon_counts.py <classification file> <exon counts file> <output filtered class file>
+#Author: Alice Naftaly, April 2020
 
 import sys
-
-
 
 #read classification file
 #returns dictionary with key == isoform id and value == line
