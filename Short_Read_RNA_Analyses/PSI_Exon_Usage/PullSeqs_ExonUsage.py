@@ -100,103 +100,70 @@ def pull_seqs():
             #then need to pull 100bp from the end of the second exon and 100bp from the beginning of exon 3
             #if the exons are not 100bp long, will pull the entire exon plus the upstream/downstream sequence to get to 100bp
             #will write a separate file with the lengths of each exon trio
-            #if both exons are greater than 100bp long
+            #pulling exon 1 sequences = only need the 100bp at the end of the exon
             if exon_1[0] < exon_1[1]:
-                upstream_100bp_1 = exon_1[1] - 100
-                exon_1_start_pull = upstream_100bp_1 - 1
-                exon_1_end_pull = exon_1[1] - 1
+                    upstream_100bp_1 = exon_1[1] - 100
+                    exon_1_start_pull = upstream_100bp_1 - 1
+                    exon_1_end_pull = exon_1[1] - 1
             #- strand
             elif exon_1[0] > exon_1[1]:
                 upstream_100bp_1 = exon_1[1] + 100
                 exon_1_start_pull = upstream_100bp_1 + 1
                 exon_1_end_pull = exon_1[1] + 1
-            #exon 2 begining
+            #pulling exon 2 sequences = need both beginning and end of the exon
             #+ strand
             if exon_2[0] < exon_2[1]:
                 downstream_100bp_2 = exon_2[0] + 100
-                exon_2_start_pull = exon_2[0] - 1
-                exon_2_end_pull = downstream_100bp_2 - 1
+                start_exon_2_start_pull = exon_2[0] - 1
+                start_exon_2_end_pull = downstream_100bp_2 - 1
+                upstream_100bp_2 = exon_2[1] - 100
+                end_exon_2_start_pull = upstream_100bp_2 - 1
+                end_exon_2_end_pull = exon_2[1] - 1
             #- strand
             elif exon_2[0] > exon_2[1]:
                 downstream_100bp_2 = exon_2[0] - 100
-                exon_2_start_pull = exon_2[0] + 1
-                exon_2_end_pull = downstream_100bp_2 + 1
+                start_exon_2_start_pull = exon_2[0] + 1
+                start_exon_2_end_pull = downstream_100bp_2 + 1
+                upstream_100bp_2 = exon_2[1] + 100
+                end_exon_2_start_pull = upstream_100bp_2 + 1
+                end_exon_2_end_pull = exon_2[1] + 1
+            #pulling exon 3 sequences, just need the beginning of the exon
+            #+ strand
+            if exon_3[0] < exon_3[1]:
+                downstream_100bp_3 = exon_3[0] + 100
+                exon_3_start_pull = exon_3[0] - 1
+                exon_3_end_pull = downstream_100bp_3 - 1
+            #- strand
+            elif exon_3[0] > exon_3[1]:
+                downstream_100bp_3 = exon_3[0] - 100
+                exon_3_start_pull = exon_3[0] + 1
+                exon_3_end_pull = downstream_100bp_3 + 1
             #pulling sequences for exon junction 1-2
             #+ strand
             if exon_1_start_pull < exon_1_end_pull:
                 no_as1_exon_1_seq = sequences[exon_1_start_pull:exon_1_end_pull]
-                no_as1_exon_2_seq = sequences[exon_2_start_pull:exon_2_end_pull]
+                no_as1_exon_2_seq = sequences[start_exon_2_start_pull:start_exon_2_end_pull]
             elif exon_1_start_pull > exon_1_end_pull:
                 no_as1_exon_1_seq = sequences[exon_1_end_pull:exon_1_start_pull]
-                no_as1_exon_2_seq = sequences[exon_2_end_pull:exon_2_start_pull]
+                no_as1_exon_2_seq = sequences[start_exon_2_end_pull:start_exon_2_start_pull]
             no_as1_sequence = no_as1_exon_1_seq + no_as1_exon_2_seq
             header_values = [gene, chr_num, str(exon_trio_num),"no_as1"]
             no_as1_header = ".".join(header_values)
             dict_value = [no_as1_sequence, exon_1_size, exon_2_size]
             exon_trio_seqs_dict.update({no_as1_header:dict_value})
-            #exon junction 2-3
-            if exon_2_size > 100 and exon_3_size > 100:
-                #exon 2 end
-                #determining direction
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    upstream_100bp_2 = exon_2[1] - 100
-                    exon_2_start_pull = upstream_100bp_2 - 1
-                    exon_2_end_pull = exon_2[1] - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    upstream_100bp_2 = exon_2[1] + 100
-                    exon_2_start_pull = upstream_100bp_2 + 1
-                    exon_2_end_pull = exon_2[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    downstream_100bp_3 = exon_3[0] + 100
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = downstream_100bp_3 - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    downstream_100bp_3 = exon_3[0] - 100
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = downstream_100bp_3 + 1
             #pulling sequences for exon junction 2-3
             #+ strand
-            if exon_2_start_pull < exon_2_end_pull:
-                no_as2_exon_2_seq = sequences[exon_2_start_pull:exon_2_end_pull]
+            if end_exon_2_start_pull < end_exon_2_end_pull:
+                no_as2_exon_2_seq = sequences[end_exon_2_start_pull:end_exon_2_end_pull]
                 no_as2_exon_3_seq = sequences[exon_3_start_pull:exon_3_end_pull]
-            elif exon_2_start_pull > exon_2_end_pull:
-                no_as2_exon_2_seq = sequences[exon_2_end_pull:exon_1_start_pull]
-                no_as2_exon_3_seq = sequences[exon_3_end_pull:exon_2_start_pull]
+            elif end_exon_2_start_pull > end_exon_2_end_pull:
+                no_as2_exon_2_seq = sequences[end_exon_2_end_pull:end_exon_2_start_pull]
+                no_as2_exon_3_seq = sequences[exon_3_end_pull:exon_3_start_pull]
             no_as2_sequence = no_as2_exon_2_seq + no_as2_exon_3_seq
             header_values = [gene, chr_num, str(exon_trio_num),"no_as2"]
             no_as2_header = ".".join(header_values)
             dict_value = [no_as2_sequence, exon_2_size, exon_3_size]
             exon_trio_seqs_dict.update({no_as2_header:dict_value})
-            #alternative splicing scenario (exons 1-3)
-            if exon_1_size > 100 and exon_3_size > 100:
-                #exon 1 end
-                #determining direction
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    upstream_100bp_1 = exon_1[1] - 100
-                    exon_1_start_pull = upstream_100bp_1 - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    upstream_100bp_1 = exon_1[1] + 100
-                    exon_1_start_pull = upstream_100bp_1 + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    downstream_100bp_3 = exon_3[0] + 100
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = downstream_100bp_3 - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    downstream_100bp_3 = exon_3[0] - 100
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = downstream_100bp_3 + 1
             #pulling sequences for exon junction 1-3 - alternative splicing event
             #+ strand
             if exon_1_start_pull < exon_3_end_pull:
@@ -204,7 +171,7 @@ def pull_seqs():
                 as1_exon_3_seq = sequences[exon_3_start_pull:exon_3_end_pull]
             elif exon_1_start_pull > exon_3_end_pull:
                 as1_exon_1_seq = sequences[exon_1_end_pull:exon_1_start_pull]
-                as1_exon_3_seq = sequences[exon_3_end_pull:exon_2_start_pull]
+                as1_exon_3_seq = sequences[exon_3_end_pull:exon_3_start_pull]
             as1_sequence = as1_exon_1_seq + as1_exon_3_seq
             header_values = [gene, chr_num, str(exon_trio_num),"as1"]
             as1_header = ".".join(header_values)
