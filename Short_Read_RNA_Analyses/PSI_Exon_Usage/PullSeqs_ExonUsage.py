@@ -96,99 +96,31 @@ def pull_seqs():
             #no alternative splicing will have 2 sets of sequences (exon 1-2 and exon 2-3)
             #the labels for these scenarios will be: no alternative splicing = no_as1 (exon 1-2) and no_as2 (exon 2-3) and alternative splicing will be as1
             #first scenario is that all 3 exons are used (no alternative splicing)
-            #this means I need to pull 75bp from the end of the first exon, 75bp from the beginning of exon 2 as one exon pair
-            #then need to pull 75bp from the end of the second exon and 75bp from the beginning of exon 3
-            #if the exons are not 75bp long, will pull the entire exon
+            #this means I need to pull 100bp from the end of the first exon, 100bp from the beginning of exon 2 as one exon pair
+            #then need to pull 100bp from the end of the second exon and 100bp from the beginning of exon 3
+            #if the exons are not 100bp long, will pull the entire exon plus the upstream/downstream sequence to get to 100bp
             #will write a separate file with the lengths of each exon trio
-            #if both exons are greater than 75bp long
-            if exon_1_size > 75 and exon_2_size > 75:
-                #exon 1 end
-                #determining direction
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] - 75
-                    exon_1_start_pull = upstream_75bp_1 - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] + 75
-                    exon_1_start_pull = upstream_75bp_1 + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 2 begining
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    downstream_75bp_2 = exon_2[0] + 75
-                    exon_2_start_pull = exon_2[0] - 1
-                    exon_2_end_pull = downstream_75bp_2 - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    downstream_75bp_2 = exon_2[0] - 75
-                    exon_2_start_pull = exon_2[0] + 1
-                    exon_2_end_pull = downstream_75bp_2 + 1
-            #if exon 1 is less than 75bp long
-            elif exon_1_size <= 75 and exon_2_size > 75:
-                #exon 1 end
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    exon_1_start_pull = exon_1[0] - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    exon_1_start_pull = exon_1[0] + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 2 begining
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    downstream_75bp_2 = exon_2[0] + 75
-                    exon_2_start_pull = exon_2[0] - 1
-                    exon_2_end_pull = downstream_75bp_2 - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    downstream_75bp_2 = exon_2[0] - 75
-                    exon_2_start_pull = exon_2[0] + 1
-                    exon_2_end_pull = downstream_75bp_2 + 1
-            #if exon 2 is less than 75bp long
-            elif exon_1_size > 75 and exon_2_size <= 75:
-                #exon 1 end
-                #determining direction
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] - 75
-                    exon_1_start_pull = upstream_75bp_1 - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] + 75
-                    exon_1_start_pull = upstream_75bp_1 + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 2 begining
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    exon_2_start_pull = exon_2[0] - 1
-                    exon_2_end_pull = exon_2[1] - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    exon_2_start_pull = exon_2[0] + 1
-                    exon_2_end_pull = exon_2[1] + 1
-            elif exon_1_size <= 75 and exon_2_size <= 75:
-                #exon 1 end
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    exon_1_start_pull = exon_1[0] - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    exon_1_start_pull = exon_1[0] + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 2 begining
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    exon_2_start_pull = exon_2[0] - 1
-                    exon_2_end_pull = exon_2[1] - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    exon_2_start_pull = exon_2[0] + 1
-                    exon_2_end_pull = exon_2[1] + 1
+            #if both exons are greater than 100bp long
+            if exon_1[0] < exon_1[1]:
+                upstream_100bp_1 = exon_1[1] - 100
+                exon_1_start_pull = upstream_100bp_1 - 1
+                exon_1_end_pull = exon_1[1] - 1
+            #- strand
+            elif exon_1[0] > exon_1[1]:
+                upstream_100bp_1 = exon_1[1] + 100
+                exon_1_start_pull = upstream_100bp_1 + 1
+                exon_1_end_pull = exon_1[1] + 1
+            #exon 2 begining
+            #+ strand
+            if exon_2[0] < exon_2[1]:
+                downstream_100bp_2 = exon_2[0] + 100
+                exon_2_start_pull = exon_2[0] - 1
+                exon_2_end_pull = downstream_100bp_2 - 1
+            #- strand
+            elif exon_2[0] > exon_2[1]:
+                downstream_100bp_2 = exon_2[0] - 100
+                exon_2_start_pull = exon_2[0] + 1
+                exon_2_end_pull = downstream_100bp_2 + 1
             #pulling sequences for exon junction 1-2
             #+ strand
             if exon_1_start_pull < exon_1_end_pull:
@@ -203,94 +135,30 @@ def pull_seqs():
             dict_value = [no_as1_sequence, exon_1_size, exon_2_size]
             exon_trio_seqs_dict.update({no_as1_header:dict_value})
             #exon junction 2-3
-            if exon_2_size > 75 and exon_3_size > 75:
+            if exon_2_size > 100 and exon_3_size > 100:
                 #exon 2 end
                 #determining direction
                 #+ strand
                 if exon_2[0] < exon_2[1]:
-                    upstream_75bp_2 = exon_2[1] - 75
-                    exon_2_start_pull = upstream_75bp_2 - 1
+                    upstream_100bp_2 = exon_2[1] - 100
+                    exon_2_start_pull = upstream_100bp_2 - 1
                     exon_2_end_pull = exon_2[1] - 1
                 #- strand
                 elif exon_2[0] > exon_2[1]:
-                    upstream_75bp_2 = exon_2[1] + 75
-                    exon_2_start_pull = upstream_75bp_2 + 1
+                    upstream_100bp_2 = exon_2[1] + 100
+                    exon_2_start_pull = upstream_100bp_2 + 1
                     exon_2_end_pull = exon_2[1] + 1
                 #exon 3 begining
                 #+ strand
                 if exon_3[0] < exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] + 75
+                    downstream_100bp_3 = exon_3[0] + 100
                     exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = downstream_75bp_3 - 1
+                    exon_3_end_pull = downstream_100bp_3 - 1
                 #- strand
                 elif exon_3[0] > exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] - 75
+                    downstream_100bp_3 = exon_3[0] - 100
                     exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = downstream_75bp_3 + 1
-            #if exon 2 is less than 75bp long
-            elif exon_2_size <= 75 and exon_3_size > 75:
-                #exon 2 end
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    exon_2_start_pull = exon_2[0] - 1
-                    exon_2_end_pull = exon_2[1] - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    exon_2_start_pull = exon_2[0] + 1
-                    exon_2_end_pull = exon_2[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] + 75
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = downstream_75bp_3 - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] - 75
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = downstream_75bp_3 + 1
-            #if exon 3 is less than 75bp long
-            elif exon_2_size > 75 and exon_3_size <= 75:
-                #exon 2 end
-                #determining direction
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    upstream_75bp_2 = exon_2[1] - 75
-                    exon_2_start_pull = upstream_75bp_2 - 1
-                    exon_2_end_pull = exon_2[1] - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    upstream_75bp_2 = exon_2[1] + 75
-                    exon_2_start_pull = upstream_75bp_2 + 1
-                    exon_2_end_pull = exon_2[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = exon_3[1] - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = exon_3[1] + 1
-            elif exon_2_size <= 75 and exon_3_size <= 75:
-                #exon 3 end
-                #+ strand
-                if exon_2[0] < exon_2[1]:
-                    exon_2_start_pull = exon_2[0] - 1
-                    exon_2_end_pull = exon_2[1] - 1
-                #- strand
-                elif exon_2[0] > exon_2[1]:
-                    exon_2_start_pull = exon_2[0] + 1
-                    exon_2_end_pull = exon_2[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = exon_3[1] - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = exon_3[1] + 1
+                    exon_3_end_pull = downstream_100bp_3 + 1
             #pulling sequences for exon junction 2-3
             #+ strand
             if exon_2_start_pull < exon_2_end_pull:
@@ -305,95 +173,30 @@ def pull_seqs():
             dict_value = [no_as2_sequence, exon_2_size, exon_3_size]
             exon_trio_seqs_dict.update({no_as2_header:dict_value})
             #alternative splicing scenario (exons 1-3)
-            if exon_1_size > 75 and exon_3_size > 75:
+            if exon_1_size > 100 and exon_3_size > 100:
                 #exon 1 end
                 #determining direction
                 #+ strand
                 if exon_1[0] < exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] - 75
-                    exon_1_start_pull = upstream_75bp_1 - 1
+                    upstream_100bp_1 = exon_1[1] - 100
+                    exon_1_start_pull = upstream_100bp_1 - 1
                     exon_1_end_pull = exon_1[1] - 1
                 #- strand
                 elif exon_1[0] > exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] + 75
-                    exon_1_start_pull = upstream_75bp_1 + 1
+                    upstream_100bp_1 = exon_1[1] + 100
+                    exon_1_start_pull = upstream_100bp_1 + 1
                     exon_1_end_pull = exon_1[1] + 1
                 #exon 3 begining
                 #+ strand
                 if exon_3[0] < exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] + 75
+                    downstream_100bp_3 = exon_3[0] + 100
                     exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = downstream_75bp_3 - 1
+                    exon_3_end_pull = downstream_100bp_3 - 1
                 #- strand
                 elif exon_3[0] > exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] - 75
+                    downstream_100bp_3 = exon_3[0] - 100
                     exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = downstream_75bp_3 + 1
-            #if exon 1 is less than 75bp long
-            elif exon_1_size <= 75 and exon_3_size > 75:
-                #exon 1 end
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    exon_1_start_pull = exon_1[0] - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    exon_1_start_pull = exon_1[0] + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] + 75
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = downstream_75bp_3 - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    downstream_75bp_3 = exon_3[0] - 75
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = downstream_75bp_3 + 1
-            #if exon 3 is less than 75bp long
-            elif exon_1_size > 75 and exon_3_size <= 75:
-                #exon 1 end
-                #determining direction
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] - 75
-                    exon_1_start_pull = upstream_75bp_1 - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    upstream_75bp_1 = exon_1[1] + 75
-                    exon_1_start_pull = upstream_75bp_1 + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = exon_3[1] - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = exon_3[1] + 1
-            #if both exons are less than 75bp long
-            elif exon_1_size <= 75 and exon_3_size <= 75:
-                #exon 1 end
-                #+ strand
-                if exon_1[0] < exon_1[1]:
-                    exon_1_start_pull = exon_1[0] - 1
-                    exon_1_end_pull = exon_1[1] - 1
-                #- strand
-                elif exon_1[0] > exon_1[1]:
-                    exon_1_start_pull = exon_1[0] + 1
-                    exon_1_end_pull = exon_1[1] + 1
-                #exon 3 begining
-                #+ strand
-                if exon_3[0] < exon_3[1]:
-                    exon_3_start_pull = exon_3[0] - 1
-                    exon_3_end_pull = exon_3[1] - 1
-                #- strand
-                elif exon_3[0] > exon_3[1]:
-                    exon_3_start_pull = exon_3[0] + 1
-                    exon_3_end_pull = exon_3[1] + 1
+                    exon_3_end_pull = downstream_100bp_3 + 1
             #pulling sequences for exon junction 1-3 - alternative splicing event
             #+ strand
             if exon_1_start_pull < exon_3_end_pull:
