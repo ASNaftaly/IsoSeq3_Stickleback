@@ -170,7 +170,12 @@ def write_bed():
                 junction_pos = junction[1]
                 junction_1 = junction_pos[0]
                 junction_2 = junction_pos[1]
-                final_line = "%s\t%s\t%s\t%s\n" % (str(chr_num), str(junction_1), str(junction_2), str(identifier))
-                out.write(final_line)
+                if junction_1 < junction_2:
+                    final_line = "%s\t%s\t%s\t%s\n" % (str(chr_num), str(junction_1), str(junction_2), str(identifier))
+                    out.write(final_line)
+                elif junction_1 > junction_2:
+                    final_line = "%s\t%s\t%s\t%s\n" % (str(chr_num), str(junction_2), str(junction_1), str(identifier))
+                    out.write(final_line)
+
 
 write_bed()
