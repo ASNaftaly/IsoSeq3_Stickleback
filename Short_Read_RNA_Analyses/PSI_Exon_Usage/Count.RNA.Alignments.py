@@ -3,7 +3,7 @@
 #reads in bed file created from mapq 30 filtered and sorted bam file and outputs a file with the following format:
 #Junction.Name \t #.Reads
 #also need to filter out read that do not overlap the boundary (92-108bp) as 100bp from each exon was pulled
-#to run script: python3 Count.RNA.Alignments.py <bed file> <output file; unique reads that span exon boundary> <output file; duplicate reads per junction> <output file; reads that do not span the boundary>
+#to run script: python3 Count.RNA.Alignments.py <bed file> <output file; unique reads that span exon boundary> <output file; reads that do not span the boundary>
 #Author: Alice Naftaly, May 2020
 
 
@@ -26,6 +26,7 @@ def read_bed():
                 bed_dict[junction_iden].append(dict_value)
             elif junction_iden not in bed_dict:
                 bed_dict.update({junction_iden:[dict_value]})
+    print("Read Bed File")
     return bed_dict
 
 
@@ -52,6 +53,7 @@ def filter_cover_boundary():
             #if reads do not span full boundary (includes reads that partially cover boundary)
             else:
                 reads_do_not_cover_boundary.append(read_names[ind])
+    print("filtered reads based on if they cover boundaries")
     return reads_cover_boundary, reads_do_not_cover_boundary
 
 
