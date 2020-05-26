@@ -47,7 +47,7 @@ def write():
     with open(output, 'a') as out:
         for junction in junction_dict:
             single_junction = junction_dict[junction]
-            final = "%s\%s\n" % (str(junction), str(single_junction))
+            final = "%s\t%s\n" % (str(junction), str(single_junction))
             out.write(final)
 
 write()
