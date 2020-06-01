@@ -1,6 +1,7 @@
 #pull fasta sequences based on the classification file
 #similar to Pull_seqs_exons_filtered.py except only pull nucleotide sequences
-#to run script: python3 Pull_nt_seqs_from_classification.py <classification file> <fasta file> <output new fasta file with only ids in classification file
+#to run script: python3 Pull_nt_seqs_from_classification.py <classification file> <fasta file> <output new fasta file with only ids in classification file>
+#Author: Alice Naftaly, May 2020
 
 import sys
 
