@@ -52,12 +52,13 @@ def create_gtf():
             repeat_name = entry[4]
             repeat_type_full = entry[5].split("/")
             if len(repeat_type_full) == 1:
-                feature = repeat_type_full[0]
-                attributes = repeat_name
+                broad_feature = repeat_type_full[0]
+                attribute = "broad_repeat '%s'; repeat_type '%s'; repeat_name '%s'" % (str(broad_feature), str(broad_feature), str(repeat_name))
             elif len(repeat_type_full) > 1:
-                feature = repeat_type_full[0]
-                attributes = repeat_type_full[1] + ";" + repeat_name
-            gtf_line = [chr_num, "Repeat_Masker", feature, start, end, ".", final_strand, "0", attributes]
+                broad_feature = repeat_type_full[0]
+                repeat_type = repeat_type_full[1]
+                attribute = "broad_repeat '%s'; repeat_type '%s'; repeat_name '%s'" % (str(broad_feature), str(repeat_type), str(repeat_name))
+            gtf_line = [chr_num, "Repeat_Masker", broad_feature, start, end, ".", final_strand, "0", attribute]
             all_gtf_lines.append(gtf_line)
     return all_gtf_lines
 
