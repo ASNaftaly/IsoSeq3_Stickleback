@@ -1,7 +1,7 @@
 #Count coverage of splice junctions
 #need to read in both exon positions and splice junctions coverage for each tissue
 #will combine all splice junctions coverage to confirm full transcriptome
-#to run script: Count.SJ.Coverage.All.Isoforms.py <exon positions gtf> <splice junctions combined file> <output summary file>
+#to run script: python3 Count.SJ.Coverage.All.Isoforms.py <exon positions gtf> <splice junctions combined file> <output summary file>
 #Author: Alice Naftaly, June 2020
 
 import sys
@@ -131,8 +131,8 @@ def create_summary():
         single_isoform = all_junctions[isoform]
         if isoform in intron_coverage:
             single_isoform_coverage = intron_coverage[isoform]
-            number_exons = len(single_isoform)
-            number_introns = number_exons - 1
+            number_exons = len(single_isoform)+1
+            number_introns = len(single_isoform)
             introns_with_coverage = 0
             introns_without_coverage = 0
             total_unique_coverage = []
