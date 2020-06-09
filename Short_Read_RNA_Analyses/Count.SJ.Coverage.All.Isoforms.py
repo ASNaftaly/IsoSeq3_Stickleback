@@ -124,15 +124,15 @@ def combine_sj_coverage_allsj():
 #create summary file
 #returns dictionary with key == isoform id and value == [isoform, number of exons, number of introns, number of introns with coverage, number of introns without coverage, average unique reads coverage of introns, average multi mapped reads coverage of introns, minimum unique reads coverage, minimum multi mapped reads coverage, maximum unique reads coverage, maximum multimapped reads coverage]
 def create_summary():
-    all_junctions = get_intron_positions()
+    all_junctions = read_isoseq_gtf()
     intron_coverage = combine_sj_coverage_allsj()
     summary_dict = {}
     for isoform in all_junctions:
         single_isoform = all_junctions[isoform]
         if isoform in intron_coverage:
             single_isoform_coverage = intron_coverage[isoform]
-            number_exons = len(single_isoform)+1
-            number_introns = len(single_isoform)
+            number_exons = len(single_isoform)
+            number_introns = number_exons - 1
             introns_with_coverage = 0
             introns_without_coverage = 0
             total_unique_coverage = []
@@ -155,7 +155,9 @@ def create_summary():
             dict_value = [isoform, str(number_exons), str(number_introns), str(introns_without_coverage), str(average_unique_reads), str(average_mutli_reads), str(min_unique_reads), str(min_multi_reads), str(max_unique_reads), str(max_multi_reads)]
             summary_dict.update({isoform:dict_value})
         elif isoform not in intron_coverage:
-            dict_value = [isoform, "1", "0", ".", ".", ".", ".", ".", ".", "."]
+            number_exons = len(single_isoform)
+            number_introns = number_exons - 1
+            dict_value = [isoform, str(number_exons), str(number_introns), ".", ".", ".", ".", ".", ".", "."]
             summary_dict.update({isoform:dict_value})
     return summary_dict
 
