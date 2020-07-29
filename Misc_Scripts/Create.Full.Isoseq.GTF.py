@@ -9,6 +9,7 @@
 #to run script: python3 Create.Full.Isoseq.GTF.py <source as string; in this case all sources will be PacBio> <classification file for combined analyses> < bed file with transcript start and end positions> <full Ensembl GTF> <isoseq gtf with exon positions> <isoseq fasta file> <isoseq faa file> <weird isoforms text file> <ensembl unmasked fasta file>
 
 import sys
+import time
 
 #read classification file
 #returns dictionary with key = isoform and value = [isoform, chr_num, strand, gene id, transcript id, protein coding]
@@ -705,6 +706,7 @@ def pull_reading_frame():
 #- strand is in 5'-3' direction for nucleotide sequence, but need to flip position because poistions in gtf are 5'-3' for + strand
 #basically, need to subtract the "start codon position" from the start of the transcript (in bed file this will be the "end" position)
 def convert_start_positions():
+    start = time.time()
     start_codons = determine_start_codon_and_frame()
     exon_positions = filtered_isoseq_gtf()
     converted_start_codons = {}
@@ -725,20 +727,85 @@ def convert_start_positions():
                 converted_start_codon_end = converted_start_codon_start + 2
                 new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
                 converted_start_codons.update({isoform:new_start_codon_pos})
-            elif len(exon_list) > 1:
-                x = 0
-                while x < len(exon_list):
-                    exon_start = int(exon_list[x][1])
-                    exon_end = int(exon_list[x][2])
-                    exon_length = exon_end - exon_start
-                    if single_codon_start < exon_length:
-                        converted_start_codon_start = exon_start + single_codon_start
-                        converted_start_codon_end = converted_start_codon_start + 2
-                        new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
-                        converted_start_codons.update({isoform:new_start_codon_pos})
-                        print(x)
-                        break
-                    x += 1
+            if len(exon_list) > 1:
+                exon_1 = exon_list[0]
+                exon_1_start = int(exon_1[1])
+                exon_1_end = int(exon_1[2])
+                exon_1_length = exon_1_end - exon_1_start
+                if exon_1_length > single_codon_start:
+                    converted_start_codon_start = exon_1_start + single_codon_start
+                    converted_start_codon_end = converted_start_codon_start + 2
+                    new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
+                    converted_start_codons.update({isoform:new_start_codon_pos})
+                elif exon_1_length < single_codon_start:
+                    exon_length_list = []
+                    for exon in exon_list:
+                        exon_start = int(exon[1])
+                        exon_end = int(exon[2])
+                        exon_length = exon_end - exon_start
+                        exon_length_list.append(exon_length)
+                    x = 0
+                    moving_start_codon = single_codon_start
+                    while x < len(exon_length_list):
+                        if moving_start_codon - exon_length_list[x] > 0:
+                            moving_start_codon = moving_start_codon - exon_length_list[x]
+                            x += 1
+                        elif moving_start_codon - exon_length_list[x] < 0:
+                            converted_start = int(exon_list[x][1]) + moving_start_codon
+                            #there is some strange counting/math issue here that you need to subtract the exon number from the converted start
+                            #if I figure out what this is; I'll explain it here or try to code for it better
+                            final_converted_start = converted_start - x
+                            final_converted_end = final_converted_start + 2
+                            new_start_codon_pos = [str(final_converted_start), str(final_converted_end)]
+                            converted_start_codons.update({isoform:new_start_codon_pos})
+                            break
+        if strand == "-":
+            if len(exon_list) == 1:
+                exon = exon_list[0]
+                exon_start = int(exon[2])
+                exon_end = int(exon[1])
+                converted_start_codon_start = exon_start - single_codon_start
+                converted_start_codon_end = converted_start_codon_start - 2
+                new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
+                converted_start_codons.update({isoform:new_start_codon_pos})
+            if len(exon_list) > 1:
+                print("examining more than 1 exon isoform")
+                exon_1 = exon_list[0]
+                exon_1_start = int(exon_1[2])
+                exon_1_end = int(exon_1[1])
+                exon_1_length = exon_1_start - exon_1_end
+                if exon_1_length > single_codon_start:
+                    converted_start_codon_start = exon_1_start - single_codon_start
+                    converted_start_codon_end = converted_start_codon_start - 2
+                    new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
+                    converted_start_codons.update({isoform:new_start_codon_pos})
+                elif exon_1_length < single_codon_start:
+                    exon_length_list = []
+                    for exon in exon_list:
+                        exon_start = int(exon[2])
+                        exon_end = int(exon[1])
+                        exon_length = exon_start - exon_end
+                        exon_length_list.append(exon_length)
+                    x = 0
+                    moving_start_codon = single_codon_start
+                    while x < len(exon_length_list):
+                        if moving_start_codon - exon_length_list[x] > 0:
+                            moving_start_codon = moving_start_codon - exon_length_list[x]
+                            x += 1
+                        elif moving_start_codon - exon_length_list[x] < 0:
+                            converted_start = int(exon_list[x][2]) - moving_start_codon
+                            #there is some strange counting/math issue here that you need to subtract the exon number from the converted start
+                            #if I figure out what this is; I'll explain it here or try to code for it better
+                            final_converted_start = converted_start + x - 1
+                            final_converted_end = final_converted_start - 2
+                            new_start_codon_pos = [str(final_converted_start), str(final_converted_end)]
+                            converted_start_codons.update({isoform:new_start_codon_pos})
+                            break
+    #return converted_start_codons
+    count = 0
+    for key in converted_start_codons:
+        count += 1
+    print(count)
 
 convert_start_positions()
 
