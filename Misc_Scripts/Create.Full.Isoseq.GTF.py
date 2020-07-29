@@ -593,9 +593,10 @@ def find_possible_start_codons():
     return f1_possible_start_codons, f2_possible_start_codons, f3_possible_start_codons
 
 #determine start codon and frame
-#will check with 6 amino acids plus starting amino acid; if any still have more than 1 start codon still; these will be dealt with later
-#there are 19 isoforms that have amino acids that have 5 or less amino acids; will not include these as start codons, stop codons, etc.
-#there are 30 isoforms that have more than 1 start codon after this function; will write another function to condense these down further
+#will check with 6 amino acids plus starting amino acid
+#there are 19 isoforms that have amino acids that have 5 or less amino acids and there are 30 isoforms that have more than 1 start codon after this function; these will be handled separately by another script or manually
+#returns dictionary with key == isoform  and value == [[start position, end position], frame]
+#positions here do not take into account strand
 def determine_start_codon_and_frame():
     frame1_starts, frame2_starts, frame3_starts = find_possible_start_codons()
     codon_dict = amino_acid_to_codons()
@@ -674,284 +675,18 @@ def determine_start_codon_and_frame():
                         start_codons[isoform_f3].append(dict_value)
                     elif isoform_f3 not in start_codons:
                         start_codons.update({isoform_f3:[dict_value]})
-
-
-determine_start_codon_and_frame()
-
-#condense isoforms with more than 1 potential start codon after determine_start_codon_and_frame
-#
-def condense_start_codons():
-    start_codons = determine_start_codon_and_frame()
-    codon_dict = amino_acid_to_codons()
-    nt_sequences = filtered_isoseq_fasta()
-    aa_sequences = filtered_isoseq_faa()
     final_start_codons = {}
-    for isoform in start_codons:
-        single_isoform = start_codons[isoform]
-        if len(single_isoform) == 1:
-            final_start_codons.update({isoform:[single_isoform[0]]})
-        elif len(single_isoform) > 1:
-            single_nt_seq = nt_sequences[isoform]
-            single_aa_seq = aa_sequences[isoform]
-            seventh_aa = single_aa_seq[6]
-            eighth_aa = single_aa_seq[7]
-            ninth_aa = single_aa_seq[8]
-            tenth_aa = single_aa_seq[9]
-            eleventh_aa = single_aa_seq[10]
-            twelfth_aa = single_aa_seq[11]
-            thirteenth_aa = single_aa_seq[12]
-            fourteenth_aa = single_aa_seq[13]
-            fifteenth_aa = single_aa_seq[14]
-            sixteenth_aa = single_aa_seq[15]
-            seventeenth_aa = single_aa_seq[16]
-            eighteenth_aa = single_aa_seq[17]
-            nineteenth_aa = single_aa_seq[18]
-            twentieth_aa = single_aa_seq[19]
-            twenty_one_aa = single_aa_seq[20]
-            twenty_two_aa = single_aa_seq[21]
-            twenty_three_aa = single_aa_seq[22]
-            twenty_four_aa = single_aa_seq[23]
-            twenty_five_aa = single_aa_seq[24]
-            twenty_six_aa = single_aa_seq[25]
-            twenty_seven_aa = single_aa_seq[26]
-            twenty_eight_aa = single_aa_seq[27]
-            twenty_nine_aa = single_aa_seq[28]
-            thirty_aa = single_aa_seq[29]
-            thirty_one_aa = single_aa_seq[30]
-            thirty_two_aa = single_aa_seq[31]
-            thirty_three_aa = single_aa_seq[32]
-            thirty_four_aa = single_aa_seq[33]
-            thirty_five_aa = single_aa_seq[34]
-            thirty_six_aa = single_aa_seq[35]
-            thirty_seven_aa = single_aa_seq[36]
-            thirty_eight_aa = single_aa_seq[37]
-            thirty_nine_aa = single_aa_seq[38]
-            for possible_start in single_isoform:
-                start_codon_pos = possible_start[0]
-                frame = possible_start[1]
-                codon_start = int(start_codon_pos[0])
-                codon_end = int(start_codon_pos[1])
-                seventh_aa_seq = "".join(single_nt_seq[codon_end+16:codon_end+19])
-                eighth_aa_seq = "".join(single_nt_seq[codon_end+19:codon_end+22])
-                ninth_aa_seq = "".join(single_nt_seq[codon_end+22:codon_end+25])
-                tenth_aa_seq = "".join(single_nt_seq[codon_end+25:codon_end+28])
-                eleventh_aa_seq = "".join(single_nt_seq[codon_end+28:codon_end+31])
-                twelfth_aa_seq = "".join(single_nt_seq[codon_end+31:codon_end+34])
-                thirteenth_aa_seq = "".join(single_nt_seq[codon_end+34:codon_end+37])
-                fourteenth_aa_seq = "".join(single_nt_seq[codon_end+37:codon_end+40])
-                fifteenth_aa_seq = "".join(single_nt_seq[codon_end+40:codon_end+43])
-                sixteenth_aa_seq = "".join(single_nt_seq[codon_end+43:codon_end+46])
-                seventeenth_aa_seq = "".join(single_nt_seq[codon_end+46:codon_end+49])
-                eighteenth_aa_seq = "".join(single_nt_seq[codon_end+49:codon_end+52])
-                nineteenth_aa_seq = "".join(single_nt_seq[codon_end+52:codon_end+55])
-                twentieth_aa_seq = "".join(single_nt_seq[codon_end+55:codon_end+58])
-                twenty_one_aa_seq = "".join(single_nt_seq[codon_end+58:codon_end+61])
-                twenty_two_aa_seq = "".join(single_nt_seq[codon_end+61:codon_end+64])
-                twenty_three_aa_seq = "".join(single_nt_seq[codon_end+64:codon_end+67])
-                twenty_four_aa_seq = "".join(single_nt_seq[codon_end+67:codon_end+70])
-                twenty_five_aa_seq = "".join(single_nt_seq[codon_end+70:codon_end+73])
-                twenty_six_aa_seq = "".join(single_nt_seq[codon_end+73:codon_end+76])
-                twenty_seven_aa_seq = "".join(single_nt_seq[codon_end+76:codon_end+79])
-                twenty_eight_aa_seq = "".join(single_nt_seq[codon_end+79:codon_end+82])
-                twenty_nine_aa_seq = "".join(single_nt_seq[codon_end+82:codon_end+85])
-                thirty_aa_seq = "".join(single_nt_seq[codon_end+85:codon_end+88])
-                thirty_one_aa_seq = "".join(single_nt_seq[codon_end+88:codon_end+91])
-                thirty_two_aa_seq = "".join(single_nt_seq[codon_end+91:codon_end+94])
-                thirty_three_aa_seq = "".join(single_nt_seq[codon_end+94:codon_end+97])
-                thirty_four_aa_seq = "".join(single_nt_seq[codon_end+97:codon_end+100])
-                thirty_five_aa_seq = "".join(single_nt_seq[codon_end+100:codon_end+103])
-                thirty_six_aa_seq = "".join(single_nt_seq[codon_end+103:codon_end+106])
-                thirty_seven_aa_seq = "".join(single_nt_seq[codon_end+106:codon_end+109])
-                thirty_eight_aa_seq = "".join(single_nt_seq[codon_end+109:codon_end+112])
-                thirty_nine_aa_seq = "".join(single_nt_seq[codon_end+112:codon_end+115])
-                if seventh_aa_seq in codon_dict[seventh_aa] and eighth_aa_seq in codon_dict[eighth_aa] and ninth_aa_seq in codon_dict[ninth_aa] and tenth_aa_seq in codon_dict[tenth_aa] and eleventh_aa_seq in codon_dict[eleventh_aa] and twelfth_aa_seq in codon_dict[twelfth_aa] and thirteenth_aa_seq in codon_dict[thirteenth_aa] and fourteenth_aa_seq in codon_dict[fourteenth_aa] and fifteenth_aa_seq in codon_dict[fifteenth_aa] and sixteenth_aa_seq in codon_dict[sixteenth_aa] and seventeenth_aa_seq in codon_dict[seventeenth_aa] and eighteenth_aa_seq in codon_dict[eighteenth_aa] and nineteenth_aa_seq in codon_dict[nineteenth_aa] and twentieth_aa_seq in codon_dict[twentieth_aa] and twenty_one_aa_seq in codon_dict[twenty_one_aa] and twenty_two_aa_seq in codon_dict[twenty_two_aa] and twenty_three_aa_seq in codon_dict[twenty_three_aa] and twenty_four_aa_seq in codon_dict[twenty_four_aa] and twenty_five_aa_seq in codon_dict[twenty_five_aa] and twenty_six_aa_seq in codon_dict[twenty_six_aa] and twenty_seven_aa_seq in codon_dict[twenty_seven_aa] and twenty_eight_aa_seq in codon_dict[twenty_eight_aa] and twenty_nine_aa_seq in codon_dict[twenty_nine_aa] and thirty_aa_seq in codon_dict[thirty_aa] and thirty_one_aa_seq in codon_dict[thirty_one_aa] and thirty_two_aa_seq in codon_dict[thirty_two_aa] and thirty_three_aa_seq in codon_dict[thirty_three_aa] and thirty_four_aa_seq in codon_dict[thirty_four_aa] and thirty_five_aa_seq in codon_dict[thirty_five_aa] and thirty_six_aa_seq in codon_dict[thirty_six_aa] and thirty_seven_aa_seq in codon_dict[thirty_seven_aa] and thirty_eight_aa_seq in codon_dict[thirty_eight_aa] and thirty_nine_aa_seq in codon_dict[thirty_nine_aa]:
-                    if isoform in final_start_codons:
-                        final_start_codons[isoform].append(possible_start)
-                    elif isoform not in final_start_codons:
-                        final_start_codons.update({isoform:[possible_start]})
-    return final_start_codons
-
-#condense isoform start codons again
-#this removes 3 more isoforms
-def condense_start_codons_2():
-    start_codons = condense_start_codons()
-    codon_dict = amino_acid_to_codons()
-    nt_sequences = read_isoseq_nt_fasta()
-    aa_sequences = read_isoseq_aa_faa()
-    final_start_codons = {}
-    for isoform in start_codons:
-        single_isoform = start_codons[isoform]
-        if len(single_isoform) == 1:
-            final_start_codons.update({isoform:[single_isoform[0]]})
-        elif len(single_isoform) > 1:
-            single_nt_seq = nt_sequences[isoform]
-            single_aa_seq = aa_sequences[isoform]
-            forty_aa = single_aa_seq[39]
-            forty_one_aa = single_aa_seq[40]
-            forty_two_aa = single_aa_seq[41]
-            forty_three_aa = single_aa_seq[42]
-            forty_four_aa = single_aa_seq[43]
-            forty_five_aa = single_aa_seq[44]
-            forty_six_aa = single_aa_seq[45]
-            forty_seven_aa = single_aa_seq[46]
-            forty_eight_aa = single_aa_seq[47]
-            forty_nine_aa = single_aa_seq[48]
-            fifty_aa = single_aa_seq[49]
-            fifty_one_aa = single_aa_seq[50]
-            fifty_two_aa = single_aa_seq[51]
-            fifty_three_aa = single_aa_seq[52]
-            fifty_four_aa = single_aa_seq[53]
-            fifty_five_aa = single_aa_seq[54]
-            fifty_six_aa = single_aa_seq[55]
-            fifty_seven_aa = single_aa_seq[56]
-            fifty_eight_aa = single_aa_seq[57]
-            fifty_nine_aa = single_aa_seq[58]
-            sixty_aa = single_aa_seq[59]
-            sixty_one_aa = single_aa_seq[60]
-            sixty_two_aa = single_aa_seq[61]
-            sixty_three_aa = single_aa_seq[62]
-            sixty_four_aa = single_aa_seq[63]
-            sixty_five_aa = single_aa_seq[64]
-            sixty_six_aa = single_aa_seq[65]
-            sixty_seven_aa = single_aa_seq[66]
-            sixty_eight_aa = single_aa_seq[67]
-            sixty_nine_aa = single_aa_seq[68]
-            seventy_aa = single_aa_seq[69]
-            seventy_one_aa = single_aa_seq[70]
-            seventy_two_aa = single_aa_seq[71]
-            seventy_three_aa = single_aa_seq[72]
-            seventy_four_aa = single_aa_seq[73]
-            seventy_five_aa = single_aa_seq[74]
-            seventy_six_aa = single_aa_seq[75]
-            seventy_seven_aa = single_aa_seq[76]
-            seventy_eight_aa = single_aa_seq[77]
-            seventy_nine_aa = single_aa_seq[78]
-            eighty_aa = single_aa_seq[79]
-            eighty_one_aa = single_aa_seq[80]
-            eighty_two_aa = single_aa_seq[81]
-            eighty_three_aa = single_aa_seq[82]
-            eighty_four_aa = single_aa_seq[83]
-            eighty_five_aa = single_aa_seq[84]
-            eighty_six_aa = single_aa_seq[85]
-            eighty_seven_aa = single_aa_seq[86]
-            eighty_eight_aa = single_aa_seq[87]
-            eighty_nine_aa = single_aa_seq[88]
-            ninety_aa = single_aa_seq[89]
-            ninety_one_aa = single_aa_seq[90]
-            ninety_two_aa = single_aa_seq[91]
-            ninety_three_aa = single_aa_seq[92]
-            ninety_four_aa = single_aa_seq[93]
-            ninety_five_aa = single_aa_seq[94]
-            ninety_six_aa = single_aa_seq[95]
-            for possible_start in single_isoform:
-                start_codon_pos = possible_start[0]
-                frame = possible_start[1]
-                codon_start = int(start_codon_pos[0])
-                codon_end = int(start_codon_pos[1])
-                forty_aa_seq = "".join(single_nt_seq[codon_end+115:codon_end+118])
-                forty_one_aa_seq = "".join(single_nt_seq[codon_end+118:codon_end+121])
-                forty_two_aa_seq = "".join(single_nt_seq[codon_end+121:codon_end+124])
-                forty_three_aa_seq = "".join(single_nt_seq[codon_end+124:codon_end+127])
-                forty_four_aa_seq = "".join(single_nt_seq[codon_end+127:codon_end+130])
-                forty_five_aa_seq = "".join(single_nt_seq[codon_end+130:codon_end+133])
-                forty_six_aa_seq = "".join(single_nt_seq[codon_end+133:codon_end+136])
-                forty_seven_aa_seq = "".join(single_nt_seq[codon_end+136:codon_end+139])
-                forty_eight_aa_seq = "".join(single_nt_seq[codon_end+139:codon_end+142])
-                forty_nine_aa_seq = "".join(single_nt_seq[codon_end+142:codon_end+145])
-                fifty_aa_seq = "".join(single_nt_seq[codon_end+145:codon_end+148])
-                fifty_one_aa_seq = "".join(single_nt_seq[codon_end+148:codon_end+151])
-                fifty_two_aa_seq = "".join(single_nt_seq[codon_end+151:codon_end+154])
-                fifty_three_aa_seq = "".join(single_nt_seq[codon_end+154:codon_end+157])
-                fifty_four_aa_seq = "".join(single_nt_seq[codon_end+157:codon_end+160])
-                fifty_five_aa_seq = "".join(single_nt_seq[codon_end+160:codon_end+163])
-                fifty_six_aa_seq = "".join(single_nt_seq[codon_end+163:codon_end+166])
-                fifty_seven_aa_seq = "".join(single_nt_seq[codon_end+166:codon_end+169])
-                fifty_eight_aa_seq = "".join(single_nt_seq[codon_end+169:codon_end+172])
-                fifty_nine_aa_seq = "".join(single_nt_seq[codon_end+172:codon_end+175])
-                sixty_aa_seq = "".join(single_nt_seq[codon_end+175:codon_end+178])
-                sixty_one_aa_seq = "".join(single_nt_seq[codon_end+178:codon_end+181])
-                sixty_two_aa_seq = "".join(single_nt_seq[codon_end+181:codon_end+184])
-                sixty_three_aa_seq = "".join(single_nt_seq[codon_end+184:codon_end+187])
-                sixty_four_aa_seq = "".join(single_nt_seq[codon_end+187:codon_end+190])
-                sixty_five_aa_seq = "".join(single_nt_seq[codon_end+190:codon_end+193])
-                sixty_six_aa_seq = "".join(single_nt_seq[codon_end+193:codon_end+196])
-                sixty_seven_aa_seq = "".join(single_nt_seq[codon_end+196:codon_end+199])
-                sixty_eight_aa_seq = "".join(single_nt_seq[codon_end+199:codon_end+202])
-                sixty_nine_aa_seq = "".join(single_nt_seq[codon_end+202:codon_end+205])
-                seventy_aa_seq = "".join(single_nt_seq[codon_end+205:codon_end+208])
-                seventy_one_aa_seq = "".join(single_nt_seq[codon_end+208:codon_end+211])
-                seventy_two_aa_seq = "".join(single_nt_seq[codon_end+211:codon_end+214])
-                seventy_three_aa_seq = "".join(single_nt_seq[codon_end+214:codon_end+217])
-                seventy_four_aa_seq = "".join(single_nt_seq[codon_end+217:codon_end+220])
-                seventy_five_aa_seq = "".join(single_nt_seq[codon_end+220:codon_end+223])
-                seventy_six_aa_seq = "".join(single_nt_seq[codon_end+223:codon_end+226])
-                seventy_seven_aa_seq = "".join(single_nt_seq[codon_end+226:codon_end+229])
-                seventy_eight_aa_seq = "".join(single_nt_seq[codon_end+229:codon_end+232])
-                seventy_nine_aa_seq = "".join(single_nt_seq[codon_end+232:codon_end+235])
-                eighty_aa_seq = "".join(single_nt_seq[codon_end+235:codon_end+238])
-                eighty_one_aa_seq = "".join(single_nt_seq[codon_end+238:codon_end+241])
-                eighty_two_aa_seq = "".join(single_nt_seq[codon_end+241:codon_end+244])
-                eighty_three_aa_seq = "".join(single_nt_seq[codon_end+244:codon_end+247])
-                eighty_four_aa_seq = "".join(single_nt_seq[codon_end+247:codon_end+250])
-                eighty_five_aa_seq = "".join(single_nt_seq[codon_end+250:codon_end+253])
-                eighty_six_aa_seq = "".join(single_nt_seq[codon_end+253:codon_end+256])
-                eighty_seven_aa_seq = "".join(single_nt_seq[codon_end+256:codon_end+259])
-                eighty_eight_aa_seq = "".join(single_nt_seq[codon_end+259:codon_end+262])
-                eighty_nine_aa_seq = "".join(single_nt_seq[codon_end+262:codon_end+265])
-                ninety_aa_seq = "".join(single_nt_seq[codon_end+265:codon_end+268])
-                ninety_one_aa_seq = "".join(single_nt_seq[codon_end+268:codon_end+271])
-                ninety_two_aa_seq = "".join(single_nt_seq[codon_end+271:codon_end+274])
-                ninety_three_aa_seq = "".join(single_nt_seq[codon_end+274:codon_end+277])
-                ninety_four_aa_seq = "".join(single_nt_seq[codon_end+277:codon_end+280])
-                ninety_five_aa_seq = "".join(single_nt_seq[codon_end+280:codon_end+283])
-                ninety_six_aa_seq = "".join(single_nt_seq[codon_end+283:codon_end+286])
-                if forty_aa_seq in codon_dict[forty_aa] and forty_one_aa_seq in codon_dict[forty_one_aa] and forty_two_aa_seq in codon_dict[forty_two_aa] and forty_three_aa_seq in codon_dict[forty_three_aa] and forty_four_aa_seq in codon_dict[forty_four_aa] and forty_five_aa_seq in codon_dict[forty_five_aa] and forty_six_aa_seq in codon_dict[forty_six_aa] and forty_seven_aa_seq in codon_dict[forty_seven_aa] and forty_eight_aa_seq in codon_dict[forty_eight_aa] and forty_nine_aa_seq in codon_dict[forty_nine_aa] and fifty_aa_seq in codon_dict[fifty_aa] and fifty_one_aa_seq in codon_dict[fifty_one_aa] and fifty_two_aa_seq in codon_dict[fifty_two_aa] and fifty_three_aa_seq in codon_dict[fifty_three_aa] and fifty_four_aa_seq in codon_dict[fifty_four_aa] and fifty_five_aa_seq in codon_dict[fifty_five_aa] and fifty_six_aa_seq in codon_dict[fifty_six_aa] and fifty_seven_aa_seq in codon_dict[fifty_seven_aa] and fifty_eight_aa_seq in codon_dict[fifty_eight_aa] and fifty_nine_aa_seq in codon_dict[fifty_nine_aa] and sixty_aa_seq in codon_dict[sixty_aa] and sixty_one_aa_seq in codon_dict[sixty_one_aa] and sixty_two_aa_seq in codon_dict[sixty_two_aa] and sixty_three_aa_seq in codon_dict[sixty_three_aa] and sixty_four_aa_seq in codon_dict[sixty_four_aa] and sixty_five_aa_seq in codon_dict[sixty_five_aa] and sixty_six_aa_seq in codon_dict[sixty_six_aa] and sixty_seven_aa_seq in codon_dict[sixty_seven_aa] and sixty_eight_aa_seq in codon_dict[sixty_eight_aa] and sixty_nine_aa_seq in codon_dict[sixty_nine_aa] and seventy_aa_seq in codon_dict[seventy_aa] and seventy_one_aa_seq in codon_dict[seventy_one_aa] and seventy_two_aa_seq in codon_dict[seventy_two_aa] and seventy_three_aa_seq in codon_dict[seventy_three_aa] and seventy_four_aa_seq in codon_dict[seventy_four_aa] and seventy_five_aa_seq in codon_dict[seventy_five_aa] and seventy_six_aa_seq in codon_dict[seventy_six_aa] and seventy_seven_aa_seq in codon_dict[seventy_seven_aa] and seventy_eight_aa_seq in codon_dict[seventy_eight_aa] and seventy_nine_aa_seq in codon_dict[seventy_nine_aa] and eighty_aa_seq in codon_dict[eighty_aa] and eighty_one_aa_seq in codon_dict[eighty_one_aa] and eighty_two_aa_seq in codon_dict[eighty_two_aa] and eighty_three_aa_seq in codon_dict[eighty_three_aa] and eighty_four_aa_seq in codon_dict[eighty_four_aa] and eighty_five_aa_seq in codon_dict[eighty_five_aa] and eighty_six_aa_seq in codon_dict[eighty_six_aa] and eighty_seven_aa_seq in codon_dict[eighty_seven_aa] and eighty_eight_aa_seq in codon_dict[eighty_eight_aa] and eighty_nine_aa_seq in codon_dict[eighty_nine_aa] and ninety_aa_seq in codon_dict[ninety_aa] and ninety_one_aa_seq in codon_dict[ninety_one_aa] and ninety_two_aa_seq in codon_dict[ninety_two_aa] and ninety_three_aa_seq in codon_dict[ninety_three_aa] and ninety_four_aa_seq in codon_dict[ninety_four_aa] and ninety_five_aa_seq in codon_dict[ninety_five_aa] and ninety_six_aa_seq in codon_dict[ninety_six_aa]:
-                    if isoform in final_start_codons:
-                        final_start_codons[isoform].append(possible_start)
-                    elif isoform not in final_start_codons:
-                        final_start_codons.update({isoform:[possible_start]})
-    return final_start_codons
-
-
-#have to condense start codons one more time
-#this condenses down 4 more isoforms, with one remaining that will be handled manually
-def condense_start_codons_3():
-    start_codons = condense_start_codons_2()
-    codon_dict = amino_acid_to_codons()
-    nt_sequences = read_isoseq_nt_fasta()
-    aa_sequences = read_isoseq_aa_faa()
-    final_start_codons = {}
-    for isoform in start_codons:
-        single_isoform = start_codons[isoform]
-        if len(single_isoform) == 1:
-            final_start_codons.update({isoform:single_isoform[0]})
-        elif len(single_isoform) > 1:
-            single_nt_seq = nt_sequences[isoform]
-            single_aa_seq = aa_sequences[isoform]
-            for possible_start in single_isoform:
-                start_codon = possible_start[0]
-                start_codon_start_pos = int(start_codon[0])
-                start_codon_end_pos = int(start_codon[1])
-                frame = possible_start[1]
-                nt_count = start_codon_end_pos + 1
-                while nt_count < len(single_nt_seq):
-                    possible_codon_list = single_nt_seq[nt_count:nt_count+3]
-                    possible_codon_seq = "".join(possible_codon_list)
-                    if possible_codon_seq in codon_dict["Stop"]:
-                        protein_stop = nt_count
-                        protein_stop_codon_end = nt_count + 2
-                        distance_from_start_to_stop = int(protein_stop) - int(start_codon_start_pos)
-                        num_amino_acids = int(distance_from_start_to_stop/3)
-                        if num_amino_acids == len(single_aa_seq):
-                            final_start_codons.update({isoform:possible_start})
-                    nt_count += 3
+    for key in start_codons:
+        single = start_codons[key]
+        if len(single) == 1:
+            final_start_codons.update({key:single[0]})
     return final_start_codons
 
 
 #create dictionary with frame and isoform:
 #returns dictionary with key == isoform and value == reading frame (0,1,2)
 def pull_reading_frame():
-    start_codons = condense_start_codons_3()
+    start_codons = determine_start_codon_and_frame()
     frame_dict = {}
     for isoform in start_codons:
         single_isoform = start_codons[isoform]
@@ -965,171 +700,47 @@ def pull_reading_frame():
         frame_dict.update({isoform:final_frame})
     return frame_dict
 
-#pull reading frame in terms of each exon (i.e. for each exon what position is the first nt 0,1,2)
-def pull_exon_frame():
-    exons_dict = filtered_isoseq_gtf()
-    start_codons = condense_start_codons_3()
-    ensembl_nt_sequences = read_ensembl_fasta()
-    bed_dict = filtered_bed()
-    converted_start_positions = {}
-    exon_frames = {}
-    count = 0
-    strand_count = 0
-    start_count = 0
-    correct_count = 0
-    for isoform in exons_dict:
-        single_exon_list = exons_dict[isoform]
-        single_bed = bed_dict[isoform]
-        chr_num = single_bed[1]
-        single_chr_seq = ensembl_nt_sequences[chr_num]
-        if isoform in start_codons:
-            single_start_codon = start_codons[isoform]
-            start_codon_pos = single_start_codon[0]
-            start_pos = start_codon_pos[0]
-            first_exon = single_exon_list[0]
-            strand = first_exon[0]
-            if strand == "+":
-                strand_count += 1
-                first_exon_start = int(single_bed[2])
-                first_exon_end = int(first_exon[2])
-                first_exon_size = first_exon_end - first_exon_start
-                if start_pos < first_exon_size:
-                    #1 isoform doesn't match the ATG
-                    count += 1
-                    seq = single_chr_seq[first_exon_start+start_pos:first_exon_start+start_pos+3]
-                    if seq == ['A', 'T', 'G']:
-                        converted_start_pos = [first_exon_start + start_pos, first_exon_start + start_pos+2]
-                        converted_start_positions.update({isoform:converted_start_pos})
-                        from_start_to_end_of_exon = first_exon_end - (first_exon_start+start_pos)
-                        remainder_exon_frame = from_start_to_end_of_exon % 3
-                        dict_value = [0, remainder_exon_frame]
-                        exon_frames.update({isoform:[dict_value]})
-                        exon_num = 1
-                        if len(single_exon_list) > 1:
-                            while exon_num < len(single_exon_list):
-                                single_exon = single_exon_list[exon_num]
-                                single_exon_start = int(single_exon[1]) + remainder_exon_frame
-                                single_exon_end = int(single_exon[2])
-                                remainder_exon_frame = (single_exon_end - single_exon_start) % 3
-                                dict_value = [exon_num, remainder_exon_frame]
-                                exon_frames[isoform].append(dict_value)
-                                exon_num += 1
-                elif start_pos > first_exon_size:
-                    start_count += 1
-                    new_start_counter = start_pos - first_exon_size
-                    exon_num = 1
-                    while exon_num < len(single_exon_list):
-                        single_exon = single_exon_list[exon_num]
-                        single_exon_start = int(single_exon[1])
-                        single_exon_end = int(single_exon[2])
-                        single_exon_size = single_exon_end - single_exon_start
-                        if new_start_counter > single_exon_size:
-                            new_start_counter = new_start_counter - single_exon_size
-                            exon_num += 1
-                        elif new_start_counter < single_exon_size:
-                            seq = single_chr_seq[single_exon_start+new_start_counter:single_exon_start+new_start_counter+3]
-                            if seq == ['A', 'T', 'G']:
-                                correct_count += 1
-                            exon_num += 1
-    print(strand_count)
-    print(count)
-    print(start_count)
-    print(correct_count)
-
-#pull_exon_frame()
-
 #convert start positions based on strand
 #+ strand is fine
-#- strand is in 5'-3' direction for nucleotide sequence, but need to flip position because poistionsin gtf are 5'-3' for + strand
+#- strand is in 5'-3' direction for nucleotide sequence, but need to flip position because poistions in gtf are 5'-3' for + strand
 #basically, need to subtract the "start codon position" from the start of the transcript (in bed file this will be the "end" position)
-#couldn't get the converted start positions for 37 isoforms; will go back and get these manually if needed
 def convert_start_positions():
-    start_codons = condense_start_codons_3()
-    ensembl_nt_sequences = read_ensembl_fasta()
+    start_codons = determine_start_codon_and_frame()
     exon_positions = filtered_isoseq_gtf()
-    bed_dict = filtered_bed()
     converted_start_codons = {}
-    minus_strand = 0
-    first_exon_start = 0
-    not_first_exon_start = 0
     for isoform in start_codons:
-        single_isoform = bed_dict[isoform]
-        chr_num = single_isoform[1]
-        transcript_start = single_isoform[2]
-        transcript_end = single_isoform[3]
-        single_chr_seq = ensembl_nt_sequences[chr_num]
-        start_codon = start_codons[isoform]
-        start_positions = start_codon[0]
-        codon_start = int(start_positions[0])
-        codon_end = int(start_positions[1])
-        frame = start_codon[1]
+        single_start_codon = start_codons[isoform]
+        single_start_positions = single_start_codon[0]
+        single_codon_start = int(single_start_positions[0])
+        single_codon_end = int(single_start_positions[1])
+        frame = single_start_codon[1]
         exon_list = exon_positions[isoform]
-        first_exon = exon_list[0]
-        strand = first_exon[0]
+        strand = exon_list[0][0]
         if strand == "+":
-            bed_position_start = int(transcript_start) + int(start_positions[0])
-            bed_seq = single_chr_seq[bed_position_start:bed_position_start+3]
-            exon_total_size = 0
-            if bed_seq == ['A', 'T', 'G']:
-                new_start_codon = [str(bed_position_start), str(bed_position_start+2)]
-                converted_start_codons.update({isoform:new_start_codon})
-            #this means that the start codon is not in the first exon
-            elif bed_seq != ['A', 'T', 'G']:
-                potential_exons_with_start_codon = []
-                for exon in exon_list:
-                    exon_size = int(exon[2]) - int(exon[1])
-                    exon_total_size += exon_size
-                    if exon_total_size >= codon_start:
-                        potential_exons_with_start_codon.append(exon)
-                        break
-                exon_with_start_codon = potential_exons_with_start_codon[0]
-                exon_length = int(exon_with_start_codon[2]) - int(exon_with_start_codon[1])
+            if len(exon_list) == 1:
+                exon = exon_list[0]
+                exon_start = int(exon[1])
+                exon_end = int(exon[2])
+                converted_start_codon_start = exon_start + single_codon_start
+                converted_start_codon_end = converted_start_codon_start + 2
+                new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
+                converted_start_codons.update({isoform:new_start_codon_pos})
+            elif len(exon_list) > 1:
                 x = 0
-                y = int(exon_with_start_codon[1])
-                while x < exon_length:
-                    three_nts = single_chr_seq[y:y+3]
-                    three_nt_seq = "".join(three_nts)
-                    if three_nt_seq == "ATG":
-                        start_pos = y
-                        new_start_codon = [str(start_pos), str(start_pos+2)]
-                        converted_start_codons.update({isoform:new_start_codon})
+                while x < len(exon_list):
+                    exon_start = int(exon_list[x][1])
+                    exon_end = int(exon_list[x][2])
+                    exon_length = exon_end - exon_start
+                    if single_codon_start < exon_length:
+                        converted_start_codon_start = exon_start + single_codon_start
+                        converted_start_codon_end = converted_start_codon_start + 2
+                        new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
+                        converted_start_codons.update({isoform:new_start_codon_pos})
+                        print(x)
                         break
                     x += 1
-                    y += 1
-        elif strand == "-":
-            minus_strand += 1
-            bed_position_start = int(transcript_end) - int(start_positions[0])
-            bed_seq = single_chr_seq[bed_position_start-2:bed_position_start+1]
-            exon_total_size = 0
-            if bed_seq == ['C', 'A', 'T']:
-                new_start_codon = [str(bed_position_start-2),str(bed_position_start)]
-                converted_start_codons.update({isoform:new_start_codon})
-                first_exon_start += 1
-            #this means that the start codon is not in the first exon
-            elif bed_seq != ['C', 'A', 'T']:
-                potential_exons_with_start_codon = []
-                for exon in exon_list:
-                    exon_size = int(exon[2]) - int(exon[1])
-                    exon_total_size += exon_size
-                    if exon_total_size >= codon_start:
-                        potential_exons_with_start_codon.append(exon)
-                        break
-                exon_with_start_codon = potential_exons_with_start_codon[0]
-                exon_length = int(exon_with_start_codon[2]) - int(exon_with_start_codon[1])
-                a = 0
-                b = int(exon_with_start_codon[2])
-                while a < exon_length:
-                    three_nts = single_chr_seq[b-2:b+1]
-                    three_nt_seq = "".join(three_nts)
-                    if three_nt_seq == "CAT":
-                        start_pos = b
-                        new_start_codon = [str(start_pos-2), str(start_pos)]
-                        converted_start_codons.update({isoform:new_start_codon})
-                        not_first_exon_start += 1
-                        break
-                    a += 1
-                    b -= 1
-    return converted_start_codons
+
+convert_start_positions()
 
 #create start codon feature
 def create_start_codon_feature():
