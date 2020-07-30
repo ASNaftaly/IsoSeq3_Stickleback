@@ -704,12 +704,12 @@ def pull_reading_frame():
 #convert start positions based on strand
 #+ strand is fine
 #- strand is in 5'-3' direction for nucleotide sequence, but need to flip position because poistions in gtf are 5'-3' for + strand
-#basically, need to subtract the "start codon position" from the start of the transcript (in bed file this will be the "end" position)
+#there are 186 isoforms that the start codon spans the exon-intron boundary; these will be handled in a separate script/manually
 def convert_start_positions():
-    start = time.time()
     start_codons = determine_start_codon_and_frame()
     exon_positions = filtered_isoseq_gtf()
     converted_start_codons = {}
+    count = 0
     for isoform in start_codons:
         single_start_codon = start_codons[isoform]
         single_start_positions = single_start_codon[0]
@@ -733,11 +733,17 @@ def convert_start_positions():
                 exon_1_end = int(exon_1[2])
                 exon_1_length = exon_1_end - exon_1_start
                 if exon_1_length > single_codon_start:
+                    #print("start codon in first exon")
                     converted_start_codon_start = exon_1_start + single_codon_start
                     converted_start_codon_end = converted_start_codon_start + 2
                     new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
                     converted_start_codons.update({isoform:new_start_codon_pos})
+                #this is a strange scenario where the start codon actually spans exon-intron boundary
+                #will probably want to specify this in the final gtf file
+                elif exon_1_length == single_codon_start:
+                    continue
                 elif exon_1_length < single_codon_start:
+                    #print("start codon not in first exon")
                     exon_length_list = []
                     for exon in exon_list:
                         exon_start = int(exon[1])
@@ -750,7 +756,7 @@ def convert_start_positions():
                         if moving_start_codon - exon_length_list[x] > 0:
                             moving_start_codon = moving_start_codon - exon_length_list[x]
                             x += 1
-                        elif moving_start_codon - exon_length_list[x] < 0:
+                        elif moving_start_codon - exon_length_list[x] <= 0:
                             converted_start = int(exon_list[x][1]) + moving_start_codon
                             #there is some strange counting/math issue here that you need to subtract the exon number from the converted start
                             #if I figure out what this is; I'll explain it here or try to code for it better
@@ -759,7 +765,7 @@ def convert_start_positions():
                             new_start_codon_pos = [str(final_converted_start), str(final_converted_end)]
                             converted_start_codons.update({isoform:new_start_codon_pos})
                             break
-        if strand == "-":
+        elif strand == "-":
             if len(exon_list) == 1:
                 exon = exon_list[0]
                 exon_start = int(exon[2])
@@ -769,16 +775,19 @@ def convert_start_positions():
                 new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
                 converted_start_codons.update({isoform:new_start_codon_pos})
             if len(exon_list) > 1:
-                print("examining more than 1 exon isoform")
                 exon_1 = exon_list[0]
                 exon_1_start = int(exon_1[2])
                 exon_1_end = int(exon_1[1])
                 exon_1_length = exon_1_start - exon_1_end
                 if exon_1_length > single_codon_start:
-                    converted_start_codon_start = exon_1_start - single_codon_start
-                    converted_start_codon_end = converted_start_codon_start - 2
+                    converted_start_codon_start = exon_1_start - single_codon_start + 1
+                    converted_start_codon_end = converted_start_codon_start
                     new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
                     converted_start_codons.update({isoform:new_start_codon_pos})
+                #this is a strange scenario where the start codon actually spans exon-intron boundary
+                #will probably want to specify this in the final gtf file
+                elif exon_1_length == single_codon_start:
+                    continue
                 elif exon_1_length < single_codon_start:
                     exon_length_list = []
                     for exon in exon_list:
@@ -792,7 +801,7 @@ def convert_start_positions():
                         if moving_start_codon - exon_length_list[x] > 0:
                             moving_start_codon = moving_start_codon - exon_length_list[x]
                             x += 1
-                        elif moving_start_codon - exon_length_list[x] < 0:
+                        elif moving_start_codon - exon_length_list[x] <= 0:
                             converted_start = int(exon_list[x][2]) - moving_start_codon
                             #there is some strange counting/math issue here that you need to subtract the exon number from the converted start
                             #if I figure out what this is; I'll explain it here or try to code for it better
@@ -801,13 +810,8 @@ def convert_start_positions():
                             new_start_codon_pos = [str(final_converted_start), str(final_converted_end)]
                             converted_start_codons.update({isoform:new_start_codon_pos})
                             break
-    #return converted_start_codons
-    count = 0
-    for key in converted_start_codons:
-        count += 1
-    print(count)
+    return converted_start_codons
 
-convert_start_positions()
 
 #create start codon feature
 def create_start_codon_feature():
@@ -857,17 +861,17 @@ def create_start_codon_feature():
     return start_codon_feature_dict
 
 #pull stop codon positions
-#it looks like 597 isoforms that have protein coding sequences (i.e. open reading frames) do not have a stop codon
-#these will be kept, but will have no stop codon
+#will use start codons to figure out stop positions in CDS
 def determine_stop_codon():
     codon_dict = amino_acid_to_codons()
     nt_sequences = filtered_isoseq_fasta()
     aa_sequences = filtered_isoseq_faa()
-    start_codons = condense_start_codons_3()
+    start_codons = determine_start_codon_and_frame()
+    print(len(start_codons))
     bed_dict = filtered_bed()
     potential_stop_positions_dict = {}
     final_stop_codons = {}
-    for isoform in aa_sequences:
+    '''for isoform in aa_sequences:
         if isoform in start_codons:
             single_nt_seq = nt_sequences[isoform]
             single_aa_seq = aa_sequences[isoform]
