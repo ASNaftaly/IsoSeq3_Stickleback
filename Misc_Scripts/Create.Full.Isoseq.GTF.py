@@ -148,7 +148,10 @@ def read_isoseq_gtf():
                 single_isoform.reverse()
                 first_exon = single_isoform[0]
                 final_first = [first_exon[0], str(int(first_exon[1])-1), first_exon[2]]
+                last_exon = single_isoform[len(single_isoform)-1]
+                final_last = [last_exon[0], str(int(last_exon[1])-1), last_exon[2]]
                 single_isoform[0] = final_first
+                single_isoform[len(single_isoform)-1] = final_last
                 final_exon_dict.update({isoform:single_isoform})
     return final_exon_dict
 
@@ -1038,53 +1041,6 @@ def create_stop_codon_feature():
                     stop_codon_feature_dict.update({chr_num:[stop_codon_feature]})
     return stop_codon_feature_dict
 
-#will get CDS and UTRs at the same time
-#will only report CDS and UTRs for isoforms that have both a start and stop codon
-#this function will convert feature dictionaries for start codons, stop codons, and exons into dictionaries with key == isoform and value == start/stop/exon feature
-def converting_feature_dicts():
-    start_codons = create_start_codon_feature()
-    stop_codons = create_stop_codon_feature()
-    frame = pull_reading_frame()
-    exon_positions = create_exon_feature()
-    new_exon_dict = {}
-    new_start_dict = {}
-    new_stop_dict = {}
-    for chr in exon_positions:
-        if chr in start_codons and chr in stop_codons:
-            single_chr_exon_positions = exon_positions[chr]
-            single_chr_start_codons = start_codons[chr]
-            single_chr_stop_codons = stop_codons[chr]
-            for exon in single_chr_exon_positions:
-                exon_feature_info = exon[8].split(";")
-                for a in exon_feature_info:
-                    if a.startswith(" isoform_id"):
-                        split_isoform = a.split(" ")
-                        isoform_id = split_isoform[2].strip("\'")
-                        if isoform_id in new_exon_dict:
-                            new_exon_dict[isoform_id].append(exon)
-                        elif isoform_id not in new_exon_dict:
-                            new_exon_dict.update({isoform_id:[exon]})
-            for start in single_chr_start_codons:
-                start_feature_info = start[8].split(";")
-                for b in start_feature_info:
-                    if b.startswith(" isoform_id"):
-                        split_isoform = b.split(" ")
-                        isoform_id = split_isoform[2].strip("\'")
-                        if isoform_id in new_start_dict:
-                            new_start_dict[isoform_id].append(start)
-                        elif isoform_id not in new_start_dict:
-                            new_start_dict.update({isoform_id:[start]})
-            for stop in single_chr_stop_codons:
-                stop_feature_info = stop[8].split(";")
-                for c in stop_feature_info:
-                    if c.startswith(" isoform_id"):
-                        split_isoform = c.split(" ")
-                        isoform_id = split_isoform[2].strip("\'")
-                        if isoform_id in new_stop_dict:
-                            new_stop_dict[isoform_id].append(stop)
-                        elif isoform_id not in new_stop_dict:
-                            new_stop_dict.update({isoform_id:[stop]})
-    return new_exon_dict, new_start_dict, new_stop_dict
 
 #determine CDS positions, 5' UTRs, and 3'UTRs
 def determine_cds_utrs_positions():
@@ -1104,117 +1060,189 @@ def determine_cds_utrs_positions():
             cds_count = 0
             three_prime_count = 0
             if strand == "+":
-                for exon in single_exon_list:
-                    exon_start = int(exon[1])
-                    exon_end = int(exon[2])
-                    exon_pos = [exon_start, exon_end]
+                if len(single_exon_list) == 1:
+                    exon_start = int(single_exon_list[0][1])
+                    exon_end = int(single_exon_list[0][2])
                     start_codon_start_pos = int(single_start_position[0])
+                    start_codon_end_pos = int(single_start_position[1])
                     stop_codon_start_pos = int(single_stop_position[0])
-                    if start_codon_start_pos > exon_end:
-                        if isoform in five_prime_utr_dict:
-                            five_prime_utr_dict[isoform].append(exon_pos)
-                        elif isoform not in five_prime_utr_dict:
-                            five_prime_utr_dict.update({isoform:[exon_pos]})
-                    elif exon_start < start_codon_start_pos < exon_end:
-                        five_prime_count += 1
-                        cds_count += 1
-                        end_five_prime_utr = start_codon_start_pos - 1
-                        five_prime_utr_pos = [exon_start, end_five_prime_utr]
-                        cds_start_pos = start_codon_start_pos
-                        cds_pos = [cds_start_pos, exon_end]
-                        if isoform in five_prime_utr_dict:
-                            five_prime_utr_dict[isoform].append(five_prime_utr_pos)
-                        elif isoform not in five_prime_utr_dict:
-                            five_prime_utr_dict.update({isoform:[five_prime_utr_pos]})
-                        if isoform in cds_dict:
-                            cds_dict[isoform].append(cds_pos)
-                        elif isoform not in cds_dict:
-                            cds_dict.update({isoform:[cds_pos]})
-                    elif stop_codon_start_pos > exon_end and start_codon_start_pos < exon_end:
-                        if isoform in cds_dict:
-                            cds_dict[isoform].append(exon_pos)
-                        elif isoform not in cds_dict:
-                            cds_dict.update({isoform:[exon_pos]})
-                    elif exon_start < stop_codon_start_pos < exon_end:
-                        cds_stop_pos = stop_codon_start_pos - 1
-                        cds_pos = [exon_start, cds_stop_pos]
-                        three_prime_utr_start_pos = stop_codon_start_pos + 3
-                        three_prime_utr_pos = [three_prime_utr_start_pos, exon_end]
-                        if isoform in cds_dict:
-                            cds_dict[isoform].append(cds_pos)
-                        elif isoform not in cds_dict:
-                            cds_dict.update({isoform:[cds_pos]})
-                        if isoform in three_prime_utr_dict:
-                            three_prime_utr_dict[isoform].append(three_prime_utr_pos)
-                        elif isoform not in three_prime_utr_dict:
-                            three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
-                    elif stop_codon_start_pos < exon_end and stop_codon_start_pos < exon_start:
-                        if isoform in three_prime_utr_dict:
-                            three_prime_utr_dict[isoform].append(exon_pos)
-                        elif isoform not in three_prime_utr_dict:
-                            three_prime_utr_dict.update({isoform:[exon_pos]})
-            if strand == "-":
-                for exon in single_exon_list:
-                    exon_start = int(exon[2])
-                    exon_end = int(exon[1])
-                    exon_pos = [exon_start, exon_end]
-                    start_codon_start_pos = int(single_start_position[1])
-                    stop_codon_start_pos = int(single_stop_position[1])
-                    if start_codon_start_pos < exon_end:
-                        five_prime_count += 1
-                        if isoform in five_prime_utr_dict:
-                            five_prime_utr_dict[isoform].append(exon_pos)
-                        elif isoform not in five_prime_utr_dict:
-                            five_prime_utr_dict.update({isoform:[exon_pos]})
-                    elif exon_start > start_codon_start_pos > exon_end:
-                        end_five_prime_utr = start_codon_start_pos + 1
-                        five_prime_utr_pos = [exon_start, end_five_prime_utr]
-                        cds_start_pos = start_codon_start_pos
-                        cds_pos = [cds_start_pos, exon_end]
-                        if isoform in five_prime_utr_dict:
-                            five_prime_utr_dict[isoform].append(five_prime_utr_pos)
-                        elif isoform not in five_prime_utr_dict:
-                            five_prime_utr_dict.update({isoform:[five_prime_utr_pos]})
-                        if isoform in cds_dict:
-                            cds_dict[isoform].append(cds_pos)
-                        elif isoform not in cds_dict:
-                            cds_dict.update({isoform:[cds_pos]})
-                    elif stop_codon_start_pos < exon_end and start_codon_start_pos > exon_end:
-                        cds_count += 1
-                        if isoform in cds_dict:
-                            cds_dict[isoform].append(exon_pos)
-                        elif isoform not in cds_dict:
-                            cds_dict.update({isoform:[exon_pos]})
-                    elif exon_start > stop_codon_start_pos > exon_end:
-                        cds_count += 1
-                        three_prime_count += 1
-                        cds_stop_pos = stop_codon_start_pos - 1
-                        cds_pos = [exon_start, cds_stop_pos]
-                        three_prime_utr_start_pos = stop_codon_start_pos + 3
-                        three_prime_utr_pos = [three_prime_utr_start_pos, exon_end]
-                        if isoform in cds_dict:
-                            cds_dict[isoform].append(cds_pos)
-                        elif isoform not in cds_dict:
-                            cds_dict.update({isoform:[cds_pos]})
-                        if isoform in three_prime_utr_dict:
-                            three_prime_utr_dict[isoform].append(three_prime_utr_pos)
-                        elif isoform not in three_prime_utr_dict:
-                            three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
-    key_list = ["PB.17919.1", "PB.17860.3","PB.14049.3", "PB.10881.2", "PB.17920.1", "PB.18761.1", "PB.14481.2", "PB.11043.9"]
-    for key in key_list:
-        print(key)
-        if key in exon_dict:
-            print(exon_dict[key])
-        if key in start_codons:
-            print(start_codons[key])
-        if key in stop_codons:
-            print(stop_codons[key])
-        if key in five_prime_utr_dict:
-            print(five_prime_utr_dict[key])
-        if key in cds_dict:
-            print(cds_dict[key])
-        if key in three_prime_utr_dict:
-            print(three_prime_utr_dict[key])
+                    stop_codon_end_pos = int(single_stop_position[1])
+                    five_prime_utr_pos = [str(exon_start), str(start_codon_start_pos - 1)]
+                    cds_pos = [str(start_codon_start_pos), str(stop_codon_end_pos)]
+                    three_prime_utr_pos = [str(stop_codon_end_pos+1), str(exon_end)]
+                    five_prime_utr_dict.update({isoform:five_prime_utr_pos})
+                    cds_dict.update({isoform:cds_pos})
+                    three_prime_utr_dict.update({isoform:three_prime_utr_pos})
+                elif len(single_exon_list) > 1:
+                    for exon in single_exon_list:
+                        exon_start = int(exon[1])
+                        exon_end = int(exon[2])
+                        exon_pos = [exon_start, exon_end]
+                        start_codon_start_pos = int(single_start_position[0])
+                        start_codon_end_pos = int(single_start_position[1])
+                        stop_codon_start_pos = int(single_stop_position[0])
+                        stop_codon_end_pos = int(single_stop_position[1])
+                        if start_codon_start_pos > exon_end:
+                            if isoform in five_prime_utr_dict:
+                                five_prime_utr_dict[isoform].append(exon_pos)
+                            elif isoform not in five_prime_utr_dict:
+                                five_prime_utr_dict.update({isoform:[exon_pos]})
+                        elif exon_start < start_codon_start_pos < exon_end:
+                            five_prime_count += 1
+                            cds_count += 1
+                            end_five_prime_utr = start_codon_start_pos - 1
+                            five_prime_utr_pos = [exon_start, end_five_prime_utr]
+                            cds_start_pos = start_codon_start_pos
+                            cds_pos = [cds_start_pos, exon_end]
+                            if isoform in five_prime_utr_dict:
+                                five_prime_utr_dict[isoform].append(five_prime_utr_pos)
+                            elif isoform not in five_prime_utr_dict:
+                                five_prime_utr_dict.update({isoform:[five_prime_utr_pos]})
+                            if isoform in cds_dict:
+                                cds_dict[isoform].append(cds_pos)
+                            elif isoform not in cds_dict:
+                                cds_dict.update({isoform:[cds_pos]})
+                        elif stop_codon_start_pos > exon_end and start_codon_start_pos < exon_end:
+                            if isoform in cds_dict:
+                                cds_dict[isoform].append(exon_pos)
+                            elif isoform not in cds_dict:
+                                cds_dict.update({isoform:[exon_pos]})
+                        elif exon_start < stop_codon_start_pos < exon_end:
+                            cds_stop_pos = stop_codon_end_pos
+                            cds_pos = [exon_start, cds_stop_pos]
+                            three_prime_utr_start_pos = stop_codon_end_pos + 1
+                            three_prime_utr_pos = [three_prime_utr_start_pos, exon_end]
+                            if isoform in cds_dict:
+                                cds_dict[isoform].append(cds_pos)
+                            elif isoform not in cds_dict:
+                                cds_dict.update({isoform:[cds_pos]})
+                            if isoform in three_prime_utr_dict:
+                                three_prime_utr_dict[isoform].append(three_prime_utr_pos)
+                            elif isoform not in three_prime_utr_dict:
+                                three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
+                        elif stop_codon_start_pos < exon_end and stop_codon_start_pos < exon_start:
+                            if isoform in three_prime_utr_dict:
+                                three_prime_utr_dict[isoform].append(exon_pos)
+                            elif isoform not in three_prime_utr_dict:
+                                three_prime_utr_dict.update({isoform:[exon_pos]})
+            elif strand == "-":
+                if len(single_exon_list) == 1:
+                    exon_start = int(single_exon_list[0][2])
+                    exon_end = int(single_exon_list[0][1])
+                    start_codon_start_pos = int(single_start_position[0])
+                    start_codon_end_pos = int(single_start_position[1])
+                    stop_codon_start_pos = int(single_stop_position[0])
+                    stop_codon_end_pos = int(single_stop_position[1])
+                    five_prime_utr_pos = [str(exon_start), str(start_codon_start_pos + 1)]
+                    cds_pos = [str(start_codon_start_pos), str(stop_codon_end_pos)]
+                    three_prime_utr_pos = [str(stop_codon_end_pos-1), str(exon_end)]
+                    five_prime_utr_dict.update({isoform:five_prime_utr_pos})
+                    cds_dict.update({isoform:cds_pos})
+                    three_prime_utr_dict.update({isoform:three_prime_utr_pos})
+                elif len(single_exon_list) > 1:
+                    for exon in single_exon_list:
+                        exon_start = int(exon[2])
+                        exon_end = int(exon[1])
+                        exon_pos = [exon_start, exon_end]
+                        start_codon_start_pos = int(single_start_position[0])
+                        start_codon_end_pos = int(single_start_position[1])
+                        stop_codon_start_pos = int(single_stop_position[0])
+                        stop_codon_end_pos = int(single_stop_position[1])
+                        if start_codon_start_pos < exon_end:
+                            five_prime_count += 1
+                            if isoform in five_prime_utr_dict:
+                                five_prime_utr_dict[isoform].append(exon_pos)
+                            elif isoform not in five_prime_utr_dict:
+                                five_prime_utr_dict.update({isoform:[exon_pos]})
+                        elif exon_start > start_codon_start_pos > exon_end and stop_codon_start_pos < exon_end:
+                            end_five_prime_utr = start_codon_start_pos + 1
+                            five_prime_utr_pos = [exon_start, end_five_prime_utr]
+                            cds_start_pos = start_codon_start_pos
+                            cds_pos = [cds_start_pos, exon_end]
+                            if isoform in five_prime_utr_dict:
+                                five_prime_utr_dict[isoform].append(five_prime_utr_pos)
+                            elif isoform not in five_prime_utr_dict:
+                                five_prime_utr_dict.update({isoform:[five_prime_utr_pos]})
+                            if isoform in cds_dict:
+                                cds_dict[isoform].append(cds_pos)
+                            elif isoform not in cds_dict:
+                                cds_dict.update({isoform:[cds_pos]})
+                        elif exon_start > start_codon_start_pos > exon_end and stop_codon_start_pos > exon_end:
+                            end_five_prime_utr = start_codon_start_pos + 1
+                            five_prime_utr_pos = [exon_start, end_five_prime_utr]
+                            cds_start_pos = start_codon_start_pos
+                            cds_end_pos = stop_codon_end_pos
+                            cds_pos = [cds_start_pos, cds_end_pos]
+                            three_prime_utr_pos = [str(stop_codon_end_pos-1), exon_end]
+                            if isoform in five_prime_utr_dict:
+                                five_prime_utr_dict[isoform].append(five_prime_utr_pos)
+                            elif isoform not in five_prime_utr_dict:
+                                five_prime_utr_dict.update({isoform:[five_prime_utr_pos]})
+                            if isoform in cds_dict:
+                                cds_dict[isoform].append(cds_pos)
+                            elif isoform not in cds_dict:
+                                cds_dict.update({isoform:[cds_pos]})
+                            if isoform in three_prime_utr_dict:
+                                three_prime_utr_dict[isoform].append(three_prime_utr_pos)
+                            elif isoform not in three_prime_utr_dict:
+                                three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
+                        elif stop_codon_start_pos < exon_end and start_codon_start_pos > exon_end:
+                            cds_count += 1
+                            if isoform in cds_dict:
+                                cds_dict[isoform].append(exon_pos)
+                            elif isoform not in cds_dict:
+                                cds_dict.update({isoform:[exon_pos]})
+                        elif exon_start > stop_codon_start_pos > exon_end:
+                            cds_count += 1
+                            three_prime_count += 1
+                            cds_stop_pos = stop_codon_end_pos
+                            cds_pos = [exon_start, cds_stop_pos]
+                            three_prime_utr_start_pos = stop_codon_end_pos -1
+                            three_prime_utr_pos = [three_prime_utr_start_pos, exon_end]
+                            if isoform in cds_dict:
+                                cds_dict[isoform].append(cds_pos)
+                            elif isoform not in cds_dict:
+                                cds_dict.update({isoform:[cds_pos]})
+                            if isoform in three_prime_utr_dict:
+                                three_prime_utr_dict[isoform].append(three_prime_utr_pos)
+                            elif isoform not in three_prime_utr_dict:
+                                three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
+    return five_prime_utr_dict, cds_dict, three_prime_utr_dict
 
 
-determine_cds_utrs_positions()
+#determine_cds_utrs_positions()
+#checking all positions
+def check():
+    start = time.time()
+    output = sys.argv[10]
+    transcript_positions = filtered_bed()
+    start_codon_positions = convert_start_positions()
+    stop_codon_positions = convert_stop_positions()
+    with open(output, 'a') as out:
+        for isoform in transcript_positions:
+            if isoform in start_codon_positions and isoform in stop_codon_positions:
+                transcript = transcript_positions[isoform]
+                chr = transcript[1]
+                strand = transcript[4]
+                if strand == "+":
+                    start_codon_start = start_codon_positions[isoform][0]
+                    start_codon_end = int(start_codon_positions[isoform][1]) + 1
+                    stop_codon_start = stop_codon_positions[isoform][0]
+                    stop_codon_end = int(stop_codon_positions[isoform][1]) + 1
+                elif strand == "-":
+                    start_codon_start = start_codon_positions[isoform][0]
+                    start_codon_end = int(start_codon_positions[isoform][1]) - 1
+                    stop_codon_start = stop_codon_positions[isoform][0]
+                    stop_codon_end = int(stop_codon_positions[isoform][1]) - 1
+                final = "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (str(isoform), str(chr), str(strand),str(start_codon_start), str(start_codon_end), str(stop_codon_start), str(stop_codon_end))
+                out.write(final)
+
+    '''count = 0
+    for isoform in transcript_positions:
+        if isoform in start_codon_positions and isoform in stop_codon_positions:
+            if isoform not in five_prime_utr_positions:
+                print(isoform)'''
+    end = time.time()
+    print(end-start)
+
+check()
