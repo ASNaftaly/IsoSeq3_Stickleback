@@ -727,7 +727,7 @@ def convert_start_positions():
                 converted_start_codon_end = converted_start_codon_start + 2
                 new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
                 converted_start_codons.update({isoform:new_start_codon_pos})
-            if len(exon_list) > 1:
+            elif len(exon_list) > 1:
                 exon_1 = exon_list[0]
                 exon_1_start = int(exon_1[1])
                 exon_1_end = int(exon_1[2])
@@ -774,14 +774,14 @@ def convert_start_positions():
                 converted_start_codon_end = converted_start_codon_start - 2
                 new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
                 converted_start_codons.update({isoform:new_start_codon_pos})
-            if len(exon_list) > 1:
+            elif len(exon_list) > 1:
                 exon_1 = exon_list[0]
                 exon_1_start = int(exon_1[2])
                 exon_1_end = int(exon_1[1])
                 exon_1_length = exon_1_start - exon_1_end
                 if exon_1_length > single_codon_start:
                     converted_start_codon_start = exon_1_start - single_codon_start + 1
-                    converted_start_codon_end = converted_start_codon_start
+                    converted_start_codon_end = converted_start_codon_start - 2
                     new_start_codon_pos = [str(converted_start_codon_start), str(converted_start_codon_end)]
                     converted_start_codons.update({isoform:new_start_codon_pos})
                 #this is a strange scenario where the start codon actually spans exon-intron boundary
@@ -862,23 +862,19 @@ def create_start_codon_feature():
 
 #pull stop codon positions
 #will use start codons to figure out stop positions in CDS
+#there are 585 isoforms without stop codons; these will not contain stop codons in the final gtf which also means thes 585 isoforms will not have a 3' UTR
 def determine_stop_codon():
+    start = time.time()
     codon_dict = amino_acid_to_codons()
     nt_sequences = filtered_isoseq_fasta()
     aa_sequences = filtered_isoseq_faa()
     start_codons = determine_start_codon_and_frame()
-    print(len(start_codons))
-    bed_dict = filtered_bed()
     potential_stop_positions_dict = {}
     final_stop_codons = {}
-    '''for isoform in aa_sequences:
+    for isoform in aa_sequences:
         if isoform in start_codons:
             single_nt_seq = nt_sequences[isoform]
             single_aa_seq = aa_sequences[isoform]
-            single_bed = bed_dict[isoform]
-            isoform_start = int(single_bed[2])
-            isoform_end = int(single_bed[3])
-            strand = single_bed[4]
             single_start_codon = start_codons[isoform]
             start_codon_start = single_start_codon[0][0]
             frame_count = start_codon_start + 3
@@ -891,82 +887,109 @@ def determine_stop_codon():
                     potential_num_aas = int(nt_dist/3)
                     if potential_num_aas == len(single_aa_seq):
                         potential_stop_positions_dict.update({isoform:stop_position})
+                        break
                 frame_count += 3
     return potential_stop_positions_dict
 
+
 #convert stop codon positions
-#there are 7 isoforms that the stop position isn't found for this function
-#will handle those separately
+#there are 4 isoforms that appear to have stop codons beyond the last exon
+#will handle these manually
 def convert_stop_positions():
-    ensembl_nt_sequences = read_ensembl_fasta()
-    nt_sequences = filtered_isoseq_fasta()
-    aa_sequences = filtered_isoseq_faa()
+    start = time.time()
+    stop_codons = determine_stop_codon()
     exon_positions = filtered_isoseq_gtf()
-    potential_stop_codons = determine_stop_codon()
-    bed_dict = filtered_bed()
-    codon_dict = amino_acid_to_codons()
-    frame = pull_reading_frame()
-    start_codons = convert_start_positions()
-    final_stop_codons = {}
-    for isoform in potential_stop_codons:
-        single_stop_codon = potential_stop_codons[isoform]
+    converted_stop_codons = {}
+    for isoform in stop_codons:
+        single_stop_codon = stop_codons[isoform]
+        single_codon_start = int(single_stop_codon[0])
+        single_codon_end = int(single_stop_codon[1])
         exon_list = exon_positions[isoform]
         strand = exon_list[0][0]
-        single_bed = bed_dict[isoform]
-        chr_num = single_bed[1]
-        single_chr_seq = ensembl_nt_sequences[chr_num]
         if strand == "+":
-            stop_start_position = int(single_stop_codon[0])
-            stop_end_position = int(single_stop_codon[1])
-            transcript_total_size = 0
-            for exon in exon_list:
+            if len(exon_list) == 1:
+                exon = exon_list[0]
                 exon_start = int(exon[1])
                 exon_end = int(exon[2])
-                exon_size = exon_end - exon_start
-                transcript_total_size += exon_size
-                if transcript_total_size > stop_start_position:
-                    exon_with_stop_codon = exon
-                    break
-            exon_with_stop_codon_start = int(exon_with_stop_codon[1])
-            exon_with_stop_codon_size = int(exon_with_stop_codon[2]) - int(exon_with_stop_codon[1])
-            x = 0
-            y = exon_with_stop_codon_start
-            while x < exon_with_stop_codon_size:
-                nt_trio = single_chr_seq[y:y+3]
-                nt_trio_seq = "".join(nt_trio)
-                if nt_trio_seq in codon_dict["Stop"]:
-                    final_stop_position = [str(y), str(y+2)]
-                    final_stop_codons.update({isoform:final_stop_position})
-                    break
-                x += 1
-                y += 1
+                converted_stop_codon_start = exon_start + single_codon_start
+                converted_stop_codon_end = converted_stop_codon_start + 2
+                new_stop_codon_pos = [str(converted_stop_codon_start), str(converted_stop_codon_end)]
+                converted_stop_codons.update({isoform:new_stop_codon_pos})
+            elif len(exon_list) > 1:
+                exon_1 = exon_list[0]
+                exon_1_start = int(exon_1[1])
+                exon_1_end = int(exon_1[2])
+                exon_1_length = exon_1_end - exon_1_start
+                if exon_1_length > single_codon_start:
+                    converted_stop_codon_start = exon_1_start + single_codon_start
+                    converted_stop_codon_end = converted_stop_codon_start + 2
+                    new_stop_codon_pos = [str(converted_stop_codon_start), str(converted_stop_codon_end)]
+                    converted_stop_codons.update({isoform:new_stop_codon_pos})
+                elif exon_1_length < single_codon_start:
+                    #print("start codon not in first exon")
+                    exon_length_list = []
+                    for exon in exon_list:
+                        exon_start = int(exon[1])
+                        exon_end = int(exon[2])
+                        exon_length = exon_end - exon_start
+                        exon_length_list.append(exon_length)
+                    x = 0
+                    moving_stop_codon = single_codon_start
+                    while x < len(exon_length_list):
+                        if moving_stop_codon - exon_length_list[x] > 0:
+                            moving_stop_codon = moving_stop_codon - exon_length_list[x]
+                            x += 1
+                        elif moving_stop_codon - exon_length_list[x] <= 0:
+                            converted_stop = int(exon_list[x][1]) + moving_stop_codon
+                            #there is some strange counting/math issue here that you need to subtract the exon number from the converted start
+                            #if I figure out what this is; I'll explain it here or try to code for it better
+                            final_converted_stop = converted_stop - x
+                            final_converted_end = final_converted_stop + 2
+                            new_stop_codon_pos = [str(final_converted_stop), str(final_converted_end)]
+                            converted_stop_codons.update({isoform:new_stop_codon_pos})
+                            break
         elif strand == "-":
-            stop_start_position = int(single_stop_codon[1])
-            stop_end_position = int(single_stop_codon[0])
-            transcript_total_size = 0
-            for exon in exon_list:
+            if len(exon_list) == 1:
+                exon = exon_list[0]
                 exon_start = int(exon[2])
                 exon_end = int(exon[1])
-                exon_size = exon_start - exon_end
-                transcript_total_size += exon_size
-                if transcript_total_size > stop_start_position:
-                    exon_with_stop_codon = exon
-                    break
-            exon_with_stop_codon_start = int(exon_with_stop_codon[2])
-            exon_with_stop_codon_size = int(exon_with_stop_codon[2]) - int(exon_with_stop_codon[1])
-            a = 0
-            b = exon_with_stop_codon_start
-            while a < exon_with_stop_codon_size:
-                nt_trio = single_chr_seq[b-2:b+1]
-                nt_trio_seq = "".join(nt_trio)
-                if nt_trio_seq == "TTA" or nt_trio_seq == "CTA" or nt_trio_seq == "TCA":
-                    final_stop_position = [str(b-2), str(b)]
-                    final_stop_codons.update({isoform:final_stop_position})
-                    break
-                a += 1
-                b -= 1
-    return final_stop_codons
-
+                converted_stop_codon_start = exon_start - single_codon_start
+                converted_stop_codon_end = converted_stop_codon_start - 2
+                new_stop_codon_pos = [str(converted_stop_codon_start), str(converted_stop_codon_end)]
+                converted_stop_codons.update({isoform:new_stop_codon_pos})
+            elif len(exon_list) > 1:
+                exon_1 = exon_list[0]
+                exon_1_start = int(exon_1[2])
+                exon_1_end = int(exon_1[1])
+                exon_1_length = exon_1_start - exon_1_end
+                if exon_1_length > single_codon_start:
+                    converted_stop_codon_start = exon_1_start - single_codon_start
+                    converted_stop_codon_end = converted_stop_codon_start - 2
+                    new_stop_codon_pos = [str(converted_stop_codon_start), str(converted_stop_codon_end)]
+                    converted_stop_codons.update({isoform:new_stop_codon_pos})
+                elif exon_1_length < single_codon_start:
+                    exon_length_list = []
+                    for exon in exon_list:
+                        exon_start = int(exon[2])
+                        exon_end = int(exon[1])
+                        exon_length = exon_start - exon_end
+                        exon_length_list.append(exon_length)
+                    x = 0
+                    moving_stop_codon = single_codon_start
+                    while x < len(exon_length_list):
+                        if moving_stop_codon - exon_length_list[x] > 0:
+                            moving_stop_codon = moving_stop_codon - exon_length_list[x]
+                            x += 1
+                        elif moving_stop_codon - exon_length_list[x] <= 0:
+                            converted_start = int(exon_list[x][2]) - moving_stop_codon
+                            #there is some strange counting/math issue here that you need to subtract the exon number from the converted start
+                            #if I figure out what this is; I'll explain it here or try to code for it better
+                            final_converted_start = converted_start + x - 1
+                            final_converted_end = final_converted_start - 2
+                            new_stop_codon_pos = [str(final_converted_start), str(final_converted_end)]
+                            converted_stop_codons.update({isoform:new_stop_codon_pos})
+                            break
+    return converted_stop_codons
 
 #create stop codon feature
 def create_stop_codon_feature():
@@ -1194,7 +1217,4 @@ def determine_cds_utrs_positions():
             print(three_prime_utr_dict[key])
 
 
-
-
-
-#determine_cds_utrs_positions()
+determine_cds_utrs_positions()
