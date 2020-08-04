@@ -1,13 +1,16 @@
 #creating final gtf for isoseq data
 #gtf format will have 9 columns = chr num, source, feature, start, end, score, strand, frame, attributes
 #source will be PacBio; feature can be gene, isoform (transcript), exon, CDS, start_codon, stop_codon, five_prime_utr, three_prime_utr; frame is only applicable to protein coding genes in the CDS
+#non protein coding genes will only have gene, transcript, and exon features
+#protein coding genes can have all features (though some may be missing)
 #attributes will include (when applicable): gene id, transcript id, gene source, transcript source, gene biotype, transcript biotype, exon number, gene name
 #if a value is not available, this will show up as "." if only value in column or be left blank if in the attribute section
 #will need to read in several files to get all of the above positions and information
 #this script handles some of the weird or issue isoforms that had differences in positions, etc.
 #this script in particular will examine the 155 isoforms that were mapped to different locations when mapping the CDS regions to the genome
 #will also pull gene category as this will correct all isoform positions
-#to run script: python3 Create.Full.GTF.IsoformIssuesHandling.1.py <source as string; in this case all sources will be PacBio> <classification file for combined analyses> < weird positions corrected positions bed file> <full Ensembl GTF> <isoseq gtf with exon positions> <isoseq fasta file> <isoseq faa file> <full bed file for all isoforms>
+#to run script: python3 Create.Full.GTF.IsoformIssuesHandling.1.py <source as string; in this case all sources will be PacBio> <classification file for combined analyses> < weird positions corrected positions bed file> <full Ensembl GTF> <isoseq gtf with exon positions> <isoseq fasta file> <isoseq faa file> <full bed file for all isoforms> <output file>
+#Author: Alice Naftaly, Aug 2020
 
 import sys
 import time
@@ -780,44 +783,39 @@ def create_start_codon_feature():
     start_codons = convert_start_positions()
     source = sys.argv[1]
     start_codon_feature_dict = {}
-    for isoform in class_dict:
+    for isoform in start_codons:
         single_isoform_class = class_dict[isoform]
         chr_num = single_isoform_class[1]
         strand = single_isoform_class[2]
         gene_id = single_isoform_class[3]
         transcript_id = single_isoform_class[4]
-        coding_potential = single_isoform_class[5]
-        if coding_potential == "coding":
-            final_potential = "protein_coding"
-        elif coding_potential == "non_coding":
-            final_potentail = "nonprotein_coding"
-        if isoform in start_codons:
-            single_start_codon = start_codons[isoform]
-            if strand == "+":
-                codon_start = single_start_codon[0]
-                codon_end = single_start_codon[1]
-            elif strand == "-":
-                codon_start = single_start_codon[1]
-                codon_end = single_start_codon[0]
-            if gene_id in ensembl_dict:
-                single_ensembl = ensembl_dict[gene_id][0]
-                if single_ensembl[2] == ".":
-                    start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
-                else:
-                    gene_name = single_ensembl[2]
-                    start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
-                start_codon_feature = [str(chr_num), str(source), "start_codon", str(codon_start), str(codon_end), ".", str(strand), ".", start_codon_attributes]
-                if isoform in start_codon_feature_dict:
-                    start_codon_feature_dict[isoform].append(start_codon_feature)
-                elif isoform not in start_codon_feature_dict:
-                    start_codon_feature_dict.update({isoform:[start_codon_feature]})
-            elif gene_id not in ensembl_dict:
+        final_potential = "protein_coding"
+        single_start_codon = start_codons[isoform]
+        if strand == "+":
+            codon_start = single_start_codon[0]
+            codon_end = single_start_codon[1]
+        elif strand == "-":
+            codon_start = single_start_codon[1]
+            codon_end = single_start_codon[0]
+        if gene_id in ensembl_dict:
+            single_ensembl = ensembl_dict[gene_id][0]
+            if single_ensembl[2] == ".":
                 start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
-                start_codon_feature = [str(chr_num), str(source), "start_codon", str(codon_start), str(codon_end), ".", str(strand), ".", start_codon_attributes]
-                if isoform in start_codon_feature_dict:
-                    start_codon_feature_dict[isoform].append(start_codon_feature)
-                elif isoform not in start_codon_feature_dict:
-                    start_codon_feature_dict.update({isoform:[start_codon_feature]})
+            else:
+                gene_name = single_ensembl[2]
+                start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+            start_codon_feature = [str(chr_num), str(source), "start_codon", str(codon_start), str(codon_end), ".", str(strand), ".", start_codon_attributes]
+            if isoform in start_codon_feature_dict:
+                start_codon_feature_dict[isoform].append(start_codon_feature)
+            elif isoform not in start_codon_feature_dict:
+                start_codon_feature_dict.update({isoform:[start_codon_feature]})
+        elif gene_id not in ensembl_dict:
+            start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+            start_codon_feature = [str(chr_num), str(source), "start_codon", str(codon_start), str(codon_end), ".", str(strand), ".", start_codon_attributes]
+            if isoform in start_codon_feature_dict:
+                start_codon_feature_dict[isoform].append(start_codon_feature)
+            elif isoform not in start_codon_feature_dict:
+                start_codon_feature_dict.update({isoform:[start_codon_feature]})
     return start_codon_feature_dict
 
 
@@ -825,7 +823,6 @@ def create_start_codon_feature():
 #will use start codons to figure out stop positions in CDS
 #there are 585 isoforms without stop codons; these will not contain stop codons in the final gtf which also means thes 585 isoforms will not have a 3' UTR
 def determine_stop_codon():
-    start = time.time()
     codon_dict = amino_acid_to_codons()
     nt_sequences = filtered_isoseq_fasta()
     aa_sequences = filtered_isoseq_faa()
@@ -858,7 +855,6 @@ def determine_stop_codon():
 #there are 4 isoforms that appear to have stop codons beyond the last exon
 #will handle these manually
 def convert_stop_positions():
-    start = time.time()
     stop_codons = determine_stop_codon()
     exon_positions = filtered_isoseq_gtf()
     converted_stop_codons = {}
@@ -953,6 +949,49 @@ def convert_stop_positions():
                             break
     return converted_stop_codons
 
+#create stop codon feature
+def create_stop_codon_feature():
+    class_dict = read_class()
+    ensembl_dict = read_ensembl_gtf_genes()
+    stop_codons = convert_stop_positions()
+    source = sys.argv[1]
+    stop_codon_feature_dict = {}
+    for isoform in stop_codons:
+        single_isoform_class = class_dict[isoform]
+        chr_num = single_isoform_class[1]
+        strand = single_isoform_class[2]
+        gene_id = single_isoform_class[3]
+        transcript_id = single_isoform_class[4]
+        coding_potential = single_isoform_class[5]
+        final_potential = "protein_coding"
+        single_stop_codon = stop_codons[isoform]
+        if strand == "+":
+            codon_start = single_stop_codon[0]
+            codon_end = single_stop_codon[1]
+        elif strand == "-":
+            codon_start = single_stop_codon[1]
+            codon_end = single_stop_codon[0]
+        if gene_id in ensembl_dict:
+            single_ensembl = ensembl_dict[gene_id][0]
+            if single_ensembl[2] == ".":
+                stop_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+            else:
+                gene_name = single_ensembl[2]
+                stop_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+            stop_codon_feature = [str(chr_num), str(source), "stop_codon", str(codon_start), str(codon_end), ".", str(strand), ".", stop_codon_attributes]
+            if isoform in stop_codon_feature_dict:
+                stop_codon_feature_dict[isoform].append(stop_codon_feature)
+            elif isoform not in stop_codon_feature_dict:
+                stop_codon_feature_dict.update({isoform:[stop_codon_feature]})
+        elif gene_id not in ensembl_dict:
+            stop_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+            stop_codon_feature = [str(chr_num), str(source), "stop_codon", str(codon_start), str(codon_end), ".", str(strand), ".", stop_codon_attributes]
+            if isoform in stop_codon_feature_dict:
+                stop_codon_feature_dict[isoform].append(stop_codon_feature)
+            elif isoform not in stop_codon_feature_dict:
+                stop_codon_feature_dict.update({isoform:[stop_codon_feature]})
+    return stop_codon_feature_dict
+
 #determine CDS positions, 5' UTRs, and 3'UTRs
 def determine_cds_utrs_positions():
     exon_dict = filtered_isoseq_gtf()
@@ -967,9 +1006,6 @@ def determine_cds_utrs_positions():
             single_start_position = start_codons[isoform]
             single_stop_position = stop_codons[isoform]
             strand = single_exon_list[0][0]
-            five_prime_count = 0
-            cds_count = 0
-            three_prime_count = 0
             if strand == "+":
                 if len(single_exon_list) == 1:
                     exon_start = int(single_exon_list[0][1])
@@ -979,13 +1015,13 @@ def determine_cds_utrs_positions():
                     stop_codon_start_pos = int(single_stop_position[0])
                     stop_codon_end_pos = int(single_stop_position[1])
                     five_prime_utr_pos = [str(exon_start), str(start_codon_start_pos - 1)]
-                    cds_pos = [str(start_codon_start_pos), str(stop_codon_end_pos)]
+                    cds_pos = [str(start_codon_start_pos), str(stop_codon_end_pos), "1"]
                     three_prime_utr_pos = [str(stop_codon_end_pos+1), str(exon_end)]
                     five_prime_utr_dict.update({isoform:five_prime_utr_pos})
                     cds_dict.update({isoform:cds_pos})
                     three_prime_utr_dict.update({isoform:three_prime_utr_pos})
                 elif len(single_exon_list) > 1:
-                    for exon in single_exon_list:
+                    for index, exon in enumerate(single_exon_list):
                         exon_start = int(exon[1])
                         exon_end = int(exon[2])
                         exon_pos = [exon_start, exon_end]
@@ -999,12 +1035,10 @@ def determine_cds_utrs_positions():
                             elif isoform not in five_prime_utr_dict:
                                 five_prime_utr_dict.update({isoform:[exon_pos]})
                         elif exon_start < start_codon_start_pos < exon_end and stop_codon_start_pos > exon_end:
-                            five_prime_count += 1
-                            cds_count += 1
                             end_five_prime_utr = start_codon_start_pos - 1
                             five_prime_utr_pos = [exon_start, end_five_prime_utr]
                             cds_start_pos = start_codon_start_pos
-                            cds_pos = [cds_start_pos, exon_end]
+                            cds_pos = [cds_start_pos, exon_end, str(index+1)]
                             if isoform in five_prime_utr_dict:
                                 five_prime_utr_dict[isoform].append(five_prime_utr_pos)
                             elif isoform not in five_prime_utr_dict:
@@ -1014,13 +1048,10 @@ def determine_cds_utrs_positions():
                             elif isoform not in cds_dict:
                                 cds_dict.update({isoform:[cds_pos]})
                         elif exon_start < start_codon_start_pos < exon_end and stop_codon_start_pos < exon_end:
-                            five_prime_count += 1
-                            cds_count += 1
-                            three_prime_count += 1
                             end_five_prime_utr = start_codon_start_pos - 1
                             five_prime_utr_pos = [exon_start, end_five_prime_utr]
                             cds_start_pos = start_codon_start_pos
-                            cds_pos = [cds_start_pos, stop_codon_end_pos]
+                            cds_pos = [cds_start_pos, stop_codon_end_pos, str(index+1)]
                             start_three_prime_utr = stop_codon_end_pos + 1
                             three_prime_utr_pos = [start_three_prime_utr, exon_end]
                             if isoform in five_prime_utr_dict:
@@ -1036,13 +1067,14 @@ def determine_cds_utrs_positions():
                             elif isoform not in three_prime_utr_dict:
                                 three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
                         elif stop_codon_start_pos > exon_end and start_codon_start_pos < exon_end:
+                            final = [exon_start, exon_end, str(index+1)]
                             if isoform in cds_dict:
-                                cds_dict[isoform].append(exon_pos)
+                                cds_dict[isoform].append(final)
                             elif isoform not in cds_dict:
-                                cds_dict.update({isoform:[exon_pos]})
+                                cds_dict.update({isoform:[final]})
                         elif exon_start < stop_codon_start_pos < exon_end:
                             cds_stop_pos = stop_codon_end_pos
-                            cds_pos = [exon_start, cds_stop_pos]
+                            cds_pos = [exon_start, cds_stop_pos, str(index+1)]
                             three_prime_utr_start_pos = stop_codon_end_pos + 1
                             three_prime_utr_pos = [three_prime_utr_start_pos, exon_end]
                             if isoform in cds_dict:
@@ -1067,13 +1099,13 @@ def determine_cds_utrs_positions():
                     stop_codon_start_pos = int(single_stop_position[0])
                     stop_codon_end_pos = int(single_stop_position[1])
                     five_prime_utr_pos = [str(exon_start), str(start_codon_start_pos + 1)]
-                    cds_pos = [str(start_codon_start_pos), str(stop_codon_end_pos)]
+                    cds_pos = [str(start_codon_start_pos), str(stop_codon_end_pos), "1"]
                     three_prime_utr_pos = [str(stop_codon_end_pos-1), str(exon_end)]
-                    five_prime_utr_dict.update({isoform:five_prime_utr_pos})
-                    cds_dict.update({isoform:cds_pos})
-                    three_prime_utr_dict.update({isoform:three_prime_utr_pos})
+                    five_prime_utr_dict.update({isoform:[five_prime_utr_pos]})
+                    cds_dict.update({isoform:[cds_pos]})
+                    three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
                 elif len(single_exon_list) > 1:
-                    for exon in single_exon_list:
+                    for ind, exon in enumerate(single_exon_list):
                         exon_start = int(exon[2])
                         exon_end = int(exon[1])
                         exon_pos = [exon_start, exon_end]
@@ -1082,7 +1114,6 @@ def determine_cds_utrs_positions():
                         stop_codon_start_pos = int(single_stop_position[0])
                         stop_codon_end_pos = int(single_stop_position[1])
                         if start_codon_start_pos < exon_end:
-                            five_prime_count += 1
                             if isoform in five_prime_utr_dict:
                                 five_prime_utr_dict[isoform].append(exon_pos)
                             elif isoform not in five_prime_utr_dict:
@@ -1091,7 +1122,7 @@ def determine_cds_utrs_positions():
                             end_five_prime_utr = start_codon_start_pos + 1
                             five_prime_utr_pos = [exon_start, end_five_prime_utr]
                             cds_start_pos = start_codon_start_pos
-                            cds_pos = [cds_start_pos, exon_end]
+                            cds_pos = [cds_start_pos, exon_end, str(ind+1)]
                             if isoform in five_prime_utr_dict:
                                 five_prime_utr_dict[isoform].append(five_prime_utr_pos)
                             elif isoform not in five_prime_utr_dict:
@@ -1105,7 +1136,7 @@ def determine_cds_utrs_positions():
                             five_prime_utr_pos = [exon_start, end_five_prime_utr]
                             cds_start_pos = start_codon_start_pos
                             cds_end_pos = stop_codon_end_pos
-                            cds_pos = [cds_start_pos, cds_end_pos]
+                            cds_pos = [cds_start_pos, cds_end_pos, str(ind+1)]
                             three_prime_utr_pos = [str(stop_codon_end_pos-1), exon_end]
                             if isoform in five_prime_utr_dict:
                                 five_prime_utr_dict[isoform].append(five_prime_utr_pos)
@@ -1120,16 +1151,14 @@ def determine_cds_utrs_positions():
                             elif isoform not in three_prime_utr_dict:
                                 three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
                         elif stop_codon_start_pos < exon_end and start_codon_start_pos > exon_end:
-                            cds_count += 1
+                            final = [exon_start, exon_end, str(ind+1)]
                             if isoform in cds_dict:
-                                cds_dict[isoform].append(exon_pos)
+                                cds_dict[isoform].append(final)
                             elif isoform not in cds_dict:
-                                cds_dict.update({isoform:[exon_pos]})
+                                cds_dict.update({isoform:[final]})
                         elif exon_start > stop_codon_start_pos > exon_end:
-                            cds_count += 1
-                            three_prime_count += 1
                             cds_stop_pos = stop_codon_end_pos
-                            cds_pos = [exon_start, cds_stop_pos]
+                            cds_pos = [exon_start, cds_stop_pos, str(ind+1)]
                             three_prime_utr_start_pos = stop_codon_end_pos -1
                             three_prime_utr_pos = [three_prime_utr_start_pos, exon_end]
                             if isoform in cds_dict:
@@ -1141,12 +1170,401 @@ def determine_cds_utrs_positions():
                             elif isoform not in three_prime_utr_dict:
                                 three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
                         elif stop_codon_end_pos > exon_start:
-                            three_prime_count += 1
                             three_prime_utr_pos = [exon_start, exon_end]
                             if isoform in three_prime_utr_dict:
                                 three_prime_utr_dict[isoform].append(three_prime_utr_pos)
                             elif isoform not in three_prime_utr_dict:
                                 three_prime_utr_dict.update({isoform:[three_prime_utr_pos]})
+        #pulling isoform data without a stop codon
+        if isoform in start_codons and isoform not in stop_codons:
+            single_exon_list = exon_dict[isoform]
+            single_start_position = start_codons[isoform]
+            strand = single_exon_list[0][0]
+            #strand is + and there is only 1 exon for this isoform
+            five_prime_utr_start = int(single_exon_list[0][1])
+            five_prime_utr_end = int(single_start_position[0]) - 1
+            five_prime_utr_pos = [five_prime_utr_start, five_prime_utr_end]
+            cds_pos = [single_start_position[0], single_exon_list[0][2], "1"]
+            five_prime_utr_dict.update({isoform:[five_prime_utr_pos]})
+            cds_dict.update({isoform:[cds_pos]})
     return five_prime_utr_dict, cds_dict, three_prime_utr_dict
 
-determine_cds_utrs_positions()
+#create five prime utr feature
+def create_five_prime_UTR_feature():
+    class_dict = read_class()
+    ensembl_dict = read_ensembl_gtf_genes()
+    five_prime_utrs, cds_regions, three_prime_utrs = determine_cds_utrs_positions()
+    source = sys.argv[1]
+    five_prime_utr_feature_dict = {}
+    for isoform in five_prime_utrs:
+        single_isoform_class = class_dict[isoform]
+        chr_num = single_isoform_class[1]
+        strand = single_isoform_class[2]
+        gene_id = single_isoform_class[3]
+        transcript_id = single_isoform_class[4]
+        final_potential = "protein_coding"
+        single_five_prime_utr = five_prime_utrs[isoform]
+        if strand == "+":
+            if len(single_five_prime_utr) == 1:
+                five_prime_utr_start = single_five_prime_utr[0][0]
+                five_prime_utr_end = single_five_prime_utr[0][1]
+                if gene_id in ensembl_dict:
+                    single_ensembl = ensembl_dict[gene_id][0]
+                    if single_ensembl[2] == ".":
+                        five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    else:
+                        gene_name = single_ensembl[2]
+                        five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                    if isoform in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                    elif isoform not in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+                elif gene_id not in ensembl_dict:
+                    five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                    if isoform in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                    elif isoform not in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+            elif len(single_five_prime_utr) > 1:
+                for single in single_five_prime_utr:
+                    five_prime_utr_start = single[0]
+                    five_prime_utr_end = single[1]
+                    if gene_id in ensembl_dict:
+                        single_ensembl = ensembl_dict[gene_id][0]
+                        if single_ensembl[2] == ".":
+                            five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        else:
+                            gene_name = single_ensembl[2]
+                            five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                        if isoform in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                        elif isoform not in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+                    elif gene_id not in ensembl_dict:
+                        five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                        if isoform in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                        elif isoform not in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+        elif strand == "-":
+            if len(single_five_prime_utr) == 1:
+                five_prime_utr_start = single_five_prime_utr[0][1]
+                five_prime_utr_end = single_five_prime_utr[0][0]
+                if gene_id in ensembl_dict:
+                    single_ensembl = ensembl_dict[gene_id][0]
+                    if single_ensembl[2] == ".":
+                        five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    else:
+                        gene_name = single_ensembl[2]
+                        five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                    if isoform in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                    elif isoform not in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+                elif gene_id not in ensembl_dict:
+                    five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                    if isoform in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                    elif isoform not in five_prime_utr_feature_dict:
+                        five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+            elif len(single_five_prime_utr) > 1:
+                for single in single_five_prime_utr:
+                    five_prime_utr_start = single[1]
+                    five_prime_utr_end = single[0]
+                    if gene_id in ensembl_dict:
+                        single_ensembl = ensembl_dict[gene_id][0]
+                        if single_ensembl[2] == ".":
+                            five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        else:
+                            gene_name = single_ensembl[2]
+                            five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                        if isoform in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                        elif isoform not in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+                    elif gene_id not in ensembl_dict:
+                        five_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        five_prime_utr_feature = [str(chr_num), str(source), "five_prime_utr", str(five_prime_utr_start), str(five_prime_utr_end), ".", str(strand), ".", five_prime_utr_attributes]
+                        if isoform in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict[isoform].append(five_prime_utr_feature)
+                        elif isoform not in five_prime_utr_feature_dict:
+                            five_prime_utr_feature_dict.update({isoform:[five_prime_utr_feature]})
+    return five_prime_utr_feature_dict
+
+#create three prime utr feature
+def create_three_prime_UTR_feature():
+    class_dict = read_class()
+    ensembl_dict = read_ensembl_gtf_genes()
+    three_prime_utrs, cds_regions, three_prime_utrs = determine_cds_utrs_positions()
+    source = sys.argv[1]
+    three_prime_utr_feature_dict = {}
+    for isoform in three_prime_utrs:
+        single_isoform_class = class_dict[isoform]
+        chr_num = single_isoform_class[1]
+        strand = single_isoform_class[2]
+        gene_id = single_isoform_class[3]
+        transcript_id = single_isoform_class[4]
+        final_potential = "protein_coding"
+        single_three_prime_utr = three_prime_utrs[isoform]
+        if strand == "+":
+            if len(single_three_prime_utr) == 1:
+                three_prime_utr_start = single_three_prime_utr[0][0]
+                three_prime_utr_end = single_three_prime_utr[0][1]
+                if gene_id in ensembl_dict:
+                    single_ensembl = ensembl_dict[gene_id][0]
+                    if single_ensembl[2] == ".":
+                        three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    else:
+                        gene_name = single_ensembl[2]
+                        three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                    if isoform in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                    elif isoform not in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+                elif gene_id not in ensembl_dict:
+                    three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                    if isoform in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                    elif isoform not in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+            elif len(single_three_prime_utr) > 1:
+                for single in single_three_prime_utr:
+                    three_prime_utr_start = single[0]
+                    three_prime_utr_end = single[1]
+                    if gene_id in ensembl_dict:
+                        single_ensembl = ensembl_dict[gene_id][0]
+                        if single_ensembl[2] == ".":
+                            three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        else:
+                            gene_name = single_ensembl[2]
+                            three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                        if isoform in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                        elif isoform not in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+                    elif gene_id not in ensembl_dict:
+                        three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                        if isoform in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                        elif isoform not in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+        elif strand == "-":
+            if len(single_three_prime_utr) == 1:
+                three_prime_utr_start = single_three_prime_utr[0][1]
+                three_prime_utr_end = single_three_prime_utr[0][0]
+                if gene_id in ensembl_dict:
+                    single_ensembl = ensembl_dict[gene_id][0]
+                    if single_ensembl[2] == ".":
+                        three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    else:
+                        gene_name = single_ensembl[2]
+                        foive_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                    if isoform in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                    elif isoform not in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+                elif gene_id not in ensembl_dict:
+                    three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                    three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                    if isoform in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                    elif isoform not in three_prime_utr_feature_dict:
+                        three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+            elif len(single_three_prime_utr) > 1:
+                for single in single_three_prime_utr:
+                    three_prime_utr_start = single[1]
+                    three_prime_utr_end = single[0]
+                    if gene_id in ensembl_dict:
+                        single_ensembl = ensembl_dict[gene_id][0]
+                        if single_ensembl[2] == ".":
+                            three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        else:
+                            gene_name = single_ensembl[2]
+                            three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                        if isoform in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                        elif isoform not in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+                    elif gene_id not in ensembl_dict:
+                        three_prime_utr_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
+                        three_prime_utr_feature = [str(chr_num), str(source), "three_prime_utr", str(three_prime_utr_start), str(three_prime_utr_end), ".", str(strand), ".", three_prime_utr_attributes]
+                        if isoform in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict[isoform].append(three_prime_utr_feature)
+                        elif isoform not in three_prime_utr_feature_dict:
+                            three_prime_utr_feature_dict.update({isoform:[three_prime_utr_feature]})
+    return three_prime_utr_feature_dict
+
+#create cds feature
+def create_CDS_feature():
+    class_dict = read_class()
+    ensembl_dict = read_ensembl_gtf_genes()
+    five_prime_utrs, cds_regions, three_prime_utrs = determine_cds_utrs_positions()
+    source = sys.argv[1]
+    cds_feature_dict = {}
+    for isoform in cds_regions:
+        single_isoform_class = class_dict[isoform]
+        chr_num = single_isoform_class[1]
+        strand = single_isoform_class[2]
+        gene_id = single_isoform_class[3]
+        transcript_id = single_isoform_class[4]
+        final_potential = "protein_coding"
+        single_cds_region = cds_regions[isoform]
+        if strand == "+":
+            if len(single_cds_region) == 1:
+                cds_region_start = single_cds_region[0][0]
+                cds_region_end = single_cds_region[0][1]
+                exon_number = single_cds_region[0][2]
+                if gene_id in ensembl_dict:
+                    single_ensembl = ensembl_dict[gene_id][0]
+                    if single_ensembl[2] == ".":
+                        cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                    else:
+                        gene_name = single_ensembl[2]
+                        cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                    cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                    if isoform in cds_feature_dict:
+                        cds_feature_dict[isoform].append(cds_region_feature)
+                    elif isoform not in cds_feature_dict:
+                        cds_feature_dict.update({isoform:[cds_region_feature]})
+                elif gene_id not in ensembl_dict:
+                    cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                    cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                    if isoform in cds_feature_dict:
+                        cds_feature_dict[isoform].append(cds_region_feature)
+                    elif isoform not in cds_feature_dict:
+                        cds_feature_dict.update({isoform:[cds_region_feature]})
+            elif len(single_cds_region) > 1:
+                for single in single_cds_region:
+                    cds_region_start = single[0]
+                    cds_region_end = single[1]
+                    exon_number = single[2]
+                    if gene_id in ensembl_dict:
+                        single_ensembl = ensembl_dict[gene_id][0]
+                        if single_ensembl[2] == ".":
+                            cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                        else:
+                            gene_name = single_ensembl[2]
+                            cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                        cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                        if isoform in cds_feature_dict:
+                            cds_feature_dict[isoform].append(cds_region_feature)
+                        elif isoform not in cds_feature_dict:
+                            cds_feature_dict.update({isoform:[cds_region_feature]})
+                    elif gene_id not in ensembl_dict:
+                        cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                        cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                        if isoform in cds_feature_dict:
+                            cds_feature_dict[isoform].append(cds_region_feature)
+                        elif isoform not in cds_feature_dict:
+                            cds_feature_dict.update({isoform:[cds_region_feature]})
+        elif strand == "-":
+            if len(single_cds_region) == 1:
+                cds_region_start = single_cds_region[0][1]
+                cds_region_end = single_cds_region[0][0]
+                exon_number = single_cds_region[0][2]
+                if gene_id in ensembl_dict:
+                    single_ensembl = ensembl_dict[gene_id][0]
+                    if single_ensembl[2] == ".":
+                        cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                    else:
+                        gene_name = single_ensembl[2]
+                        cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                    cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                    if isoform in cds_feature_dict:
+                        cds_feature_dict[isoform].append(cds_region_feature)
+                    elif isoform not in cds_feature_dict:
+                        cds_feature_dict.update({isoform:[cds_region_feature]})
+                elif gene_id not in ensembl_dict:
+                    cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                    cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                    if isoform in cds_feature_dict:
+                        cds_feature_dict[isoform].append(cds_region_feature)
+                    elif isoform not in cds_feature_dict:
+                        cds_feature_dict.update({isoform:[cds_region_feature]})
+            elif len(single_cds_region) > 1:
+                for single in single_cds_region:
+                    cds_region_start = single[0]
+                    cds_region_end = single[1]
+                    exon_number = single[2]
+                    if gene_id in ensembl_dict:
+                        single_ensembl = ensembl_dict[gene_id][0]
+                        if single_ensembl[2] == ".":
+                            cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                        else:
+                            gene_name = single_ensembl[2]
+                            cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                        cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                        if isoform in cds_feature_dict:
+                            cds_feature_dict[isoform].append(cds_region_feature)
+                        elif isoform not in cds_feature_dict:
+                            cds_feature_dict.update({isoform:[cds_region_feature]})
+                    elif gene_id not in ensembl_dict:
+                        cds_region_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s'; exon_number '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform), str(exon_number))
+                        cds_region_feature = [str(chr_num), str(source), "CDS", str(cds_region_start), str(cds_region_end), ".", str(strand), ".", cds_region_attributes]
+                        if isoform in cds_feature_dict:
+                            cds_feature_dict[isoform].append(cds_region_feature)
+                        elif isoform not in cds_feature_dict:
+                            cds_feature_dict.update({isoform:[cds_region_feature]})
+    return cds_feature_dict
+
+
+#writing output to files
+#Will write all features to 1 file that will be sorted later
+def write():
+    gene_features = create_gene_feature()
+    transcript_features = create_transcript_feature()
+    exon_features = create_exon_feature()
+    start_codon_features = create_start_codon_feature()
+    stop_codon_features = create_stop_codon_feature()
+    five_prime_utr_features = create_five_prime_UTR_feature()
+    three_prime_utr_features = create_three_prime_UTR_feature()
+    cds_features = create_CDS_feature()
+    output = sys.argv[9]
+    with open(output, 'a') as out:
+        for iso1 in gene_features:
+            for i in gene_features[iso1]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+        for iso2 in transcript_features:
+            for i in transcript_features[iso2]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+        for iso3 in exon_features:
+            for i in exon_features[iso3]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+        for iso4 in start_codon_features:
+            for i in start_codon_features[iso4]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+        for iso5 in stop_codon_features:
+            for i in stop_codon_features[iso5]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+        for iso6 in five_prime_utr_features:
+            for i in five_prime_utr_features[iso6]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+        for iso7 in three_prime_utr_features:
+            for i in three_prime_utr_features[iso7]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+        for iso8 in cds_features:
+            for i in cds_features[iso8]:
+                final = "\t".join(i)
+                out.write(final + "\n")
+
+write()
