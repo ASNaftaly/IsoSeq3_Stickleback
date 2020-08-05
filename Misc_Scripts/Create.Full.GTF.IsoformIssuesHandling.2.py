@@ -421,52 +421,6 @@ def convert_start_positions():
                             converted_start_codons.update({isoform:new_start_codon_pos})
                             break
     return converted_start_codons
-    '''for key in converted_start_codons:
-        print(key)
-        print(converted_start_codons[key])'''
-
-#create start codon feature
-def create_start_codon_feature():
-    class_dict = read_class()
-    ensembl_dict = read_ensembl_gtf_genes()
-    start_codons = convert_start_positions()
-    source = sys.argv[1]
-    start_codon_feature_dict = {}
-    for isoform in start_codons:
-        single_isoform_class = class_dict[isoform]
-        chr_num = single_isoform_class[1]
-        strand = single_isoform_class[2]
-        gene_id = single_isoform_class[3]
-        transcript_id = single_isoform_class[4]
-        final_potential = "protein_coding"
-        single_start_codon = start_codons[isoform]
-        if strand == "+":
-            codon_start = single_start_codon[0]
-            codon_end = single_start_codon[1]
-        elif strand == "-":
-            codon_start = single_start_codon[1]
-            codon_end = single_start_codon[0]
-        if gene_id in ensembl_dict:
-            single_ensembl = ensembl_dict[gene_id][0]
-            if single_ensembl[2] == ".":
-                start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
-            else:
-                gene_name = single_ensembl[2]
-                start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; gene_name '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(gene_name), str(transcript_id), str(source), str(final_potential), str(isoform))
-            start_codon_feature = [str(chr_num), str(source), "start_codon", str(codon_start), str(codon_end), ".", str(strand), ".", start_codon_attributes]
-            if isoform in start_codon_feature_dict:
-                start_codon_feature_dict[isoform].append(start_codon_feature)
-            elif isoform not in start_codon_feature_dict:
-                start_codon_feature_dict.update({isoform:[start_codon_feature]})
-        elif gene_id not in ensembl_dict:
-            start_codon_attributes = "gene_id '%s'; gene_source '%s'; gene_biotype '%s'; transcript_id '%s'; transcript_source '%s'; transcript_biotype '%s'; isoform_id '%s';" % (str(gene_id), str(source), str(final_potential), str(transcript_id), str(source), str(final_potential), str(isoform))
-            start_codon_feature = [str(chr_num), str(source), "start_codon", str(codon_start), str(codon_end), ".", str(strand), ".", start_codon_attributes]
-            if isoform in start_codon_feature_dict:
-                start_codon_feature_dict[isoform].append(start_codon_feature)
-            elif isoform not in start_codon_feature_dict:
-                start_codon_feature_dict.update({isoform:[start_codon_feature]})
-    return start_codon_feature_dict
-
 
 #convert stop positions based on strand
 #+ strand is fine
@@ -477,7 +431,6 @@ def convert_stop_positions():
     exon_positions = filtered_isoseq_gtf()
     aa_sequences = filtered_isoseq_faa()
     converted_stop_codons = {}
-    key_list = ["PB.8298.4"]
     for isoform in stop_codons:
         single_start_position = converted_start_positions[isoform]
         single_protein_seq = aa_sequences[isoform]
