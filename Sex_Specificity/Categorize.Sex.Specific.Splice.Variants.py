@@ -268,8 +268,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names[1:len(exon_descriptors)]:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -283,8 +283,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -298,8 +298,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -324,8 +324,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -339,8 +339,8 @@ def characterize_differences():
                          for descriptor in exon_descriptor_names[1:len(exon_descriptors)]:
                              if descriptor != "same.exon":
                                  descriptor_count += 1
-                         f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                         m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                         f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                         m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                          if female_isoform in characterization_dict:
                              characterization_dict[female_isoform].append(f_final)
                          elif female_isoform not in characterization_dict:
@@ -354,8 +354,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names[1:len(exon_descriptors)]:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -369,8 +369,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names[1:len(exon_descriptors)]:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -384,8 +384,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names[1:len(exon_descriptors)]:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -399,8 +399,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing\t%s.exons.alternatively.spliced\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing\t%s.exons.alternatively.spliced\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing\t%s.exons.alternatively.spliced\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing\t%s.exons.alternatively.spliced\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -414,8 +414,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names[0:len(exon_descriptors)-1]:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced;Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced;Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -429,8 +429,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names[0:len(exon_descriptors)-1]:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -444,8 +444,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -459,8 +459,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -470,8 +470,8 @@ def characterize_differences():
                         elif male_isoform not in characterization_dict:
                             characterization_dict.update({male_isoform:[m_final]})
                     elif exon_descriptors[0] == [0, "diff.exon"] and exon_descriptors[len(exon_descriptors)-1] == [int(f_key)-1, "same.exon"] and list(set(exon_descriptor_names[1:len(exon_descriptor_names)])) == ["same.exon"]:
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,"1")
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,"1")
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,"1")
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,"1")
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -485,8 +485,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TSS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -511,8 +511,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names[0:len(exon_descriptors)-1]:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t%s.exons.alternatively.spliced,Alternate.TTS\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -526,8 +526,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing\t%s.exons.alternatively.spliced\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing\t%s.exons.alternatively.spliced\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing\t%s.exons.alternatively.spliced\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing\t%s.exons.alternatively.spliced\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
@@ -541,8 +541,8 @@ def characterize_differences():
                         for descriptor in exon_descriptor_names:
                             if descriptor != "same.exon":
                                 descriptor_count += 1
-                        f_final = "%s\t%s\tFemale\tAlternate.Splicing\t%s.exons.alternatively.spliced\n" % (female_isoform,gene,descriptor_count)
-                        m_final = "%s\t%s\tMale\tAlternate.Splicing\t%s.exons.alternatively.spliced\n" % (male_isoform,gene,descriptor_count)
+                        f_final = "%s\t%s\tFemale\tAlternative.Splicing\t%s.exons.alternatively.spliced\n" % (female_isoform,gene,descriptor_count)
+                        m_final = "%s\t%s\tMale\tAlternative.Splicing\t%s.exons.alternatively.spliced\n" % (male_isoform,gene,descriptor_count)
                         if female_isoform in characterization_dict:
                             characterization_dict[female_isoform].append(f_final)
                         elif female_isoform not in characterization_dict:
