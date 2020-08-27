@@ -2656,7 +2656,7 @@ def pull_characterized_male_specific_isoforms():
     male_characterized_dict.update({"PB.5788.4":["PB.5788.4\tENSGACG00000020291\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t1.exon.alternatively.spliced,Alternate.TTS\n"]})
     male_characterized_dict.update({"PB.4490.3":["PB.4490.3\tENSGACG00000002358\tMale\tTSS.TTS.UTR.diffs\tAlternate.TSS,Alternate.TTS\n"]})
     male_characterized_dict.update({"PB.9109.4":["PB.9109.4\tENSGACG00000007457\tMale\tTSS.TTS.UTR.diffs\tAlternate.TSS\n"]})
-    male_characterized_dict.update({"PB.5105.5":["PB.5105.5\tENSGACG00000011659\tMale\tAltenative.Splicing,TSS.TTS.UTR.diffs\t1.exon.alternatively.spliced,Alternate.TSS,Alternate.TTS\n"]})
+    male_characterized_dict.update({"PB.5105.5":["PB.5105.5\tENSGACG00000011659\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t1.exon.alternatively.spliced,Alternate.TSS,Alternate.TTS\n"]})
     male_characterized_dict.update({"PB.11733.3":["PB.11733.3\tENSGACG00000016040\tMale\tTSS.TTS.UTR.diffs\tAlternate.TSS,Alternate.TTS\n"]})
     male_characterized_dict.update({"PB.9739.10":["PB.9739.10\tENSGACG00000014523\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t2.exons.alternatively.spliced,Alternate.TSS,Alternate.TTS\n"]})
     male_characterized_dict.update({"PB.1058.22":["PB.1058.22\tENSGACG00000015537\tMale\tAlternative.Splicing,TSS.TTS.UTR.diffs\t1.exon.alternatively.spliced,Alternate.TSS,Alternate.TTS\n"]})
