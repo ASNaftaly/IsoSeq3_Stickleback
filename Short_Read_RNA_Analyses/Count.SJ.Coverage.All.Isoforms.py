@@ -63,9 +63,7 @@ def get_intron_positions():
                     intron_end = int(exon_2[2])-1
                     new_dict_value = [chr_num, strand, intron_start, intron_end]
                 elif strand == "-":
-                    print(exon_1)
-                    print(exon_2)
-                    '''intron_start = int(exon_1[2])-1
+                    intron_start = int(exon_1[2])-1
                     intron_end = int(exon_2[3])+1
                     new_dict_value = [chr_num, strand, intron_end, intron_start]
                 if isoform in introns_dict:
@@ -73,8 +71,7 @@ def get_intron_positions():
                 elif isoform not in introns_dict:
                     introns_dict.update({isoform:[new_dict_value]})
                 exon_count += 1
-    return introns_dict'''
-get_intron_positions()
+    return introns_dict
 
 #read in splice junction Coverage
 #returns dictionary with key == chr number and value == [intron start, intron end, number of uniquely mapped reads, number of multimapped reads] *everything is increasing in position number
@@ -116,21 +113,34 @@ def combine_sj_coverage_allsj():
                     intron_start = intron[2]
                     intron_end = intron[3]
                     if intron_start == sj_start and intron_end == sj_end:
-                        print(isoform)
-                        count+= 1
                         dict_value = [intron_start, intron_end, unique_reads, multi_reads]
-                        print(dict_value)
                         if isoform in junction_coverage:
                             junction_coverage[isoform].append(dict_value)
                         elif isoform not in junction_coverage:
                             junction_coverage.update({isoform:[dict_value]})
-    #return junction_coverage
-    #count = 0
-    #for key in junction_coverage:
-        #count += 1
-
-#combine_sj_coverage_allsj()
-
+    final_junction_coverage = {}
+    for iso in junction_coverage:
+        single_iso = junction_coverage[iso]
+        single_iso_dict = {}
+        for val in single_iso:
+            iso_val = [val[2], val[3]]
+            if str(val[0]) in single_iso_dict:
+                single_iso_dict[str(val[0])].append(iso_val)
+            elif str(val[0]) not in single_iso_dict:
+                single_iso_dict.update({str(val[0]):[iso_val]})
+        for read_count in single_iso_dict:
+            unique_mapped = 0
+            multi_mapped = 0
+            single_read_count = single_iso_dict[read_count]
+            for v in single_read_count:
+                unique_mapped += v[0]
+                multi_mapped += v[1]
+            final_dict_value = [unique_mapped, multi_mapped]
+            if iso in final_junction_coverage:
+                final_junction_coverage[iso].append(final_dict_value)
+            elif iso not in final_junction_coverage:
+                final_junction_coverage.update({iso:[final_dict_value]})
+    return final_junction_coverage
 
 #create summary file
 #returns dictionary with key == isoform id and value == [isoform, number of exons, number of introns, number of introns with coverage, number of introns without coverage, list of introns without coverage, average unique reads coverage of introns, average multi mapped reads coverage of introns, minimum unique reads coverage, minimum multi mapped reads coverage, maximum unique reads coverage, maximum multimapped reads coverage]
@@ -142,19 +152,18 @@ def create_summary():
         single_isoform = all_junctions[isoform]
         if isoform in intron_coverage:
             single_isoform_coverage = intron_coverage[isoform]
-            number_exons = len(single_isoform) + 1
-            number_introns = len(single_isoform)
+            number_exons = len(single_isoform)
+            number_introns = len(single_isoform)-1
             number_introns_covered = len(single_isoform_coverage)
             introns_with_coverage = 0
             introns_without_coverage = 0
             total_unique_coverage = []
             total_multi_coverage = []
             covered_introns = []
-            list_of_introns_not_covered = []
             if number_introns == number_introns_covered:
                 for intron in single_isoform_coverage:
-                    intron_unique_reads = intron[2]
-                    intron_multi_reads = intron[3]
+                    intron_unique_reads = intron[0]
+                    intron_multi_reads = intron[0]
                     total_unique_coverage.append(intron_unique_reads)
                     total_multi_coverage.append(intron_multi_reads)
                     if intron_unique_reads == 0 and intron_multi_reads == 0:
@@ -167,35 +176,34 @@ def create_summary():
                 min_multi_reads = min(total_multi_coverage)
                 max_unique_reads = max(total_unique_coverage)
                 max_multi_reads = max(total_multi_coverage)
-                dict_value = [isoform, str(number_exons), str(number_introns), str(introns_without_coverage), ".", str(average_unique_reads), str(average_mutli_reads), str(min_unique_reads), str(min_multi_reads), str(max_unique_reads), str(max_multi_reads)]
+                dict_value = [isoform, str(number_exons), str(number_introns), str(introns_without_coverage),  str(average_unique_reads), str(average_mutli_reads), str(min_unique_reads), str(min_multi_reads), str(max_unique_reads), str(max_multi_reads)]
                 summary_dict.update({isoform:dict_value})
                 #want to know which introns are not covered
             elif number_introns != number_introns_covered:
+                num_introns_missing = number_introns - number_introns_covered
+                introns_without_coverage += num_introns_missing
                 for intron in single_isoform_coverage:
                     covered_introns.append(intron[0])
-                    intron_unique_reads = intron[2]
-                    intron_multi_reads = intron[3]
+                    intron_unique_reads = intron[0]
+                    intron_multi_reads = intron[1]
                     total_unique_coverage.append(intron_unique_reads)
                     total_multi_coverage.append(intron_multi_reads)
                     if intron_unique_reads == 0 and intron_multi_reads == 0:
                         introns_without_coverage += 1
                     else:
                         introns_with_coverage += 1
-                for ind, v in enumerate(single_isoform):
-                    if v[2] not in covered_introns:
-                        list_of_introns_not_covered.append(str(ind))
                 average_unique_reads = round(sum(total_unique_coverage)/len(total_unique_coverage),2)
                 average_mutli_reads = round(sum(total_multi_coverage)/len(total_multi_coverage),2)
                 min_unique_reads = min(total_unique_coverage)
                 min_multi_reads = min(total_multi_coverage)
                 max_unique_reads = max(total_unique_coverage)
                 max_multi_reads = max(total_multi_coverage)
-                dict_value = [isoform, str(number_exons), str(number_introns), str(introns_without_coverage + len(list_of_introns_not_covered)), list_of_introns_not_covered, str(average_unique_reads), str(average_mutli_reads), str(min_unique_reads), str(min_multi_reads), str(max_unique_reads), str(max_multi_reads)]
+                dict_value = [isoform, str(number_exons), str(number_introns), str(introns_without_coverage), str(average_unique_reads), str(average_mutli_reads), str(min_unique_reads), str(min_multi_reads), str(max_unique_reads), str(max_multi_reads)]
                 summary_dict.update({isoform:dict_value})
         elif isoform not in intron_coverage:
             number_exons = len(single_isoform)
             number_introns = number_exons - 1
-            dict_value = [isoform, str(number_exons), str(number_introns),".", ".", ".", ".", ".", ".", ".", "."]
+            dict_value = [isoform, str(number_exons), str(number_introns),".", ".", ".", ".", ".", ".", "."]
             summary_dict.update({isoform:dict_value})
     return summary_dict
 
@@ -204,22 +212,11 @@ def write():
     summary_dict = create_summary()
     output = sys.argv[3]
     with open(output, 'a') as out:
-        header = "Isoform.ID\tNo.of.Exons\tNo.of.Introns\tNo.Introns.without.Cov\tIntrons.Not.Covered\tAve.Unique.ReadCov\tAve.MultiMapped.Read.Cov\tMin.Unique.Read.Cov\tMin.MultiMapped.Read.Cov\tMax.Unique.Read.Cov\tMax.MultiMapped.Read.Cov\n"
+        header = "Isoform.ID\tNo.of.Exons\tNo.of.Introns\tNo.Introns.without.Cov\tAve.Unique.ReadCov\tAve.MultiMapped.Read.Cov\tMin.Unique.Read.Cov\tMin.MultiMapped.Read.Cov\tMax.Unique.Read.Cov\tMax.MultiMapped.Read.Cov\n"
         out.write(header)
         for isoform in summary_dict:
             single_isoform = summary_dict[isoform]
-            if isinstance(single_isoform[4], list) == False:
-                final = "\t".join(single_isoform)
-                out.write(final + "\n")
-            elif isinstance(single_isoform[4],list) == True:
-                if len(single_isoform[4]) == 1:
-                    introns_not_covered = single_isoform[4][0]
-                    final = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (str(single_isoform[0]),str(single_isoform[1]),str(single_isoform[2]),str(single_isoform[3]),introns_not_covered, str(single_isoform[5]), str(single_isoform[6]), str(single_isoform[7]),str(single_isoform[8]), str(single_isoform[9]), str(single_isoform[10]))
-                    out.write(final)
-                elif len(single_isoform[4]) > 1:
-                    introns_not_covered = ",".join(single_isoform[4])
-                    final = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (str(single_isoform[0]),str(single_isoform[1]),str(single_isoform[2]),str(single_isoform[3]),introns_not_covered, str(single_isoform[5]), str(single_isoform[6]), str(single_isoform[7]),str(single_isoform[8]), str(single_isoform[9]), str(single_isoform[10]))
-                    out.write(final)
+            final = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (str(single_isoform[0]),str(single_isoform[1]),str(single_isoform[2]),str(single_isoform[3]), str(single_isoform[4]), str(single_isoform[5]), str(single_isoform[6]), str(single_isoform[7]),str(single_isoform[8]), str(single_isoform[9]))
+            out.write(final)
 
-
-#write()
+write()
